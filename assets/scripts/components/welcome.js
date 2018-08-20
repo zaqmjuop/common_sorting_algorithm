@@ -64,10 +64,10 @@ const param = {
         const key1 = getRandom(20);
         let key2;
         for (let index = 0; index < 1000; index += 1) {
-          key2 = getRandom(20);
+          key2 = getRandom(20) + 1;
           if (key2 !== key1) { break; }
         }
-        this.methods.exchange(key1, key2);
+        this.methods.makeLiMoveTo(key1, key2);
       });
     },
     /** 操作Li位置的方法,2个li交换位置
@@ -81,12 +81,14 @@ const param = {
       if (!Number.isSafeInteger(index2) || index2 < 0 || index2 > 19) {
         throw new Error(`index2不能是${index2}`);
       }
-      const item1 = this.data.items[index1];
-      const item2 = this.data.items[index2];
-      const order1 = item1.data.order;
-      const order2 = item2.data.order;
-      item1.dispatchEvent('send', { order: order2 });
-      item2.dispatchEvent('send', { order: order1 });
+      if (index1 !== index2) {
+        const item1 = this.data.items[index1];
+        const item2 = this.data.items[index2];
+        const order1 = item1.data.order;
+        const order2 = item2.data.order;
+        item1.dispatchEvent('send', { order: order2 });
+        item2.dispatchEvent('send', { order: order1 });
+      }
     },
     /** 操作li位置的方法，把一个li移动到指定顺位 */
     /** 操作Li位置的方法,2个li交换位置
@@ -94,13 +96,35 @@ const param = {
      * @param {number} order - 一个数字，使this.data.items[index1]移动的目标顺位
      * @todo
      */
-    makeLiMoveTo(index1, order) {
-      if (!Number.isSafeInteger(index1) || index1 < 0 || index1 > 19) {
-        throw new Error(`index1不能是${index1}`);
+    makeLiMoveTo(index, order) {
+      if (!Number.isSafeInteger(index) || index < 0 || index > 19) {
+        throw new Error(`index不能是${index}`);
       }
-      if (!Number.isSafeInteger(order) || order < 0 || order > 19) {
+      if (!Number.isSafeInteger(order) || order < 1 || order > 20) {
         throw new Error(`order不能是${order}`);
       }
+      const item = this.data.items[index];
+      const beforeOrder = item.data.order;
+      if (beforeOrder === order) { return false; }
+      const orderInterval = { min: 0, max: 0, feed: 0 };
+      if (order > beforeOrder) {
+        orderInterval.min = beforeOrder + 1;
+        orderInterval.max = order;
+        orderInterval.feed = -1;
+      } else {
+        orderInterval.min = order;
+        orderInterval.max = beforeOrder - 1;
+        orderInterval.feed = 1;
+      }
+      const passItems = this.data.items.filter((cpt) => {
+        const isPass = cpt.data.order <= orderInterval.max && cpt.data.order >= orderInterval.min;
+        return isPass;
+      });
+      passItems.forEach((cpt) => {
+        const destination = cpt.data.order + orderInterval.feed;
+        cpt.dispatchEvent('send', { order: destination });
+      });
+      return item.dispatchEvent('send', { order });
     },
   },
   created() {
