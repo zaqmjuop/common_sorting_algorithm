@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <style scoped>
+    .template {
+      height: 100%;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+    }
+
+    .template>div {
+      border-width: 3px;
+      border-style: solid;
+      margin: 1px;
+    }
+
+    .urgent-important {
+      background: radial-gradient( #fee, #fff);
+      border-color: #e03;
+    }
+
+    .urgent-not-important {
+      background: radial-gradient( #ffe, #fff);
+      border-color: #f90;
+    }
+
+    .not-urgent-important {
+      background: radial-gradient(#eef, #fff);
+      border-color: #06c;
+    }
+
+    .not-urgent-not-important {
+      background: radial-gradient( #eee, #fff);
+      border-color: #999;
+    }
+
+    h6 {
+      margin: 0;
+      text-align: center;
+    }
+
+    .card {
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      min-width: 4em;
+      min-height: 4em;
+    }
+
+    .title {
+      position: absolute;
+      width: 100%;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .hide {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="template">
+    <div class="card urgent-important" data-position="urgent-important">
+      <h6 class="title">重要 紧急</h6>
+    </div>
+    <div class="card urgent-not-important" data-position="urgent-not-important">
+      <h6 class="title">不重要 紧急</h6>
+    </div>
+    <div class="card not-urgent-important" data-position="not-urgent-important">
+      <h6 class="title">重要 不紧急</h6>
+    </div>
+    <div class="card not-urgent-not-important" data-position="not-urgent-not-important">
+      <h6 class="title">不重要 不紧急</h6>
+    </div>
+  </div>
+</body>
+
+</html>

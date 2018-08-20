@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <style scoped>
+    .template {
+      padding: 10px;
+      display: grid;
+      grid-template-rows: 2em 6em 1fr 2em;
+      height: 100%;
+    }
+
+    textarea {
+      height: 100%;
+      width: 100%;
+      resize: none;
+      overflow-y: scroll;
+    }
+
+    .middle>* {
+      display: block;
+      margin-top: 14px;
+    }
+
+    .hide {
+      display: none;
+    }
+
+    .btn {
+      margin-left: 1em;
+    }
+
+    .icon {
+      width: 1.6em;
+      height: 1.6em;
+      cursor: pointer;
+    }
+
+    .btns {
+      display: flex;
+      justify-content: space-between;
+    }
+    .submits{
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="template" title="Esc撤销">
+    <div class="btns">
+      <img class="icon" style="margin-left:10px;" alt="撤销" title="撤销" name="cancal" src="../images/icons/left-circle.png">
+      <div>
+        <img class="icon" style="margin-right:10px;" alt="删除" title="删除" name="remove" src="../images/icons/delete.png">
+      </div>
+    </div>
+    <div class="middle">
+      <select name="quadrant" title="重要性">
+        <option value="0">很重要-很紧急</option>
+        <option value="1">重要-不紧急</option>
+        <option value="2">不重要-紧急</option>
+        <option value="3">不重要-不紧急</option>
+      </select>
+      <input type="text" name="date" placeholder="选择一个日期" title="选择一个日期">
+    </div>
+    <textarea placeholder="要做什么" title="Ctrl + Enter 快速保存" autofocus></textarea>
+    <div class="submits">
+      <span></span>
+      <img class="icon" style="margin-right:10px;" alt="保存" title="保存" name="submit" src="../images/icons/save.png">
+    </div>
+  </div>
+</body>
+
+</html>

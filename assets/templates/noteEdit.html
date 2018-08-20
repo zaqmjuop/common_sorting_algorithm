@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <style scoped>
+    .template {
+      padding: 10px;
+    }
+
+    textarea {
+      width: 100%;
+      resize: none;
+      overflow-y: scroll;
+    }
+
+    .option {
+      display: grid;
+      grid-template-columns: 1fr 100px;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="template">
+    <div class="option">
+      <div class="text-right">
+        <a class="btn" name="cancal">取消</a>
+        <a class="btn" name="submit">保存</a>
+        <a class="btn" name="remove">删除</a>
+      </div>
+    </div>
+    <textarea rows='20' placeholder="要做什么"></textarea>
+  </div>
+</body>
+
+</html>
