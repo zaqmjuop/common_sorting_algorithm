@@ -1,14 +1,10 @@
 import Component from './component';
-import routerParam from './router';
-import noticeParam from './notice';
+import welcomeParam from './welcome';
 
 /** 加载全部组件 */
 
 async function main() {
-  const router = await Component.of(routerParam);
-  const notice = await Component.of(noticeParam);
-  window.router = router;
-  window.notice = notice;
+  const welcome = await Component.of(welcomeParam);
   return console.log('组件加载完毕');
 }
 

@@ -1,0 +1,32 @@
+{
+  "name": "common_sorting_algorithm",
+  "version": "1.0.0",
+  "description": "常见排序算法 测试git push",
+  "main": ".eslintrc.js",
+  "dependencies": {
+    "babel-polyfill": "^6.26.0",
+    "arraystorage": "^1.0.5",
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.7.0"
+  },
+  "devDependencies": {
+    "eslint": "^5.4.0",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-plugin-import": "^2.14.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "parcel dev.html -p 3000"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zaqmjuop/common_sorting_algorithm.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/zaqmjuop/common_sorting_algorithm/issues"
+  },
+  "homepage": "https://github.com/zaqmjuop/common_sorting_algorithm#readme"
+}
