@@ -38,7 +38,7 @@ const param = {
           this.data.value = event.detail.value;
           this.methods.fill();
         }
-        if (Number.isSafeInteger(event.detail.order)) {
+        if (Number.isSafeInteger(event.detail.order) && event.detail.order !== this.data.order) {
           this.data.order = event.detail.order;
           this.methods.moveToOrder();
         }
@@ -51,6 +51,8 @@ const param = {
     },
     moveToOrder() {
       Dom.of(this.template).css('left', `${(this.data.order - 1) * 40}px`);
+      Dom.of(this.template).addClass('high-light');
+      setTimeout(() => Dom.of(this.template).removeClass('high-light'), 1000);
     },
   },
   created() {

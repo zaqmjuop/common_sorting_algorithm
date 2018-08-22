@@ -1,6 +1,18 @@
 import Dom from '../dom';
 import li from './li';
 
+/**
+ * 返回一个等待若干好眠的promise
+ * @param {number} mesc - 等待的毫秒数
+ */
+const wait = (mesc) => {
+  if (!Number.isSafeInteger(mesc) || mesc < 0) { throw new TypeError(`mesc不能是${mesc}`); }
+  const promise = new Promise((resolve) => {
+    setTimeout(() => resolve(mesc), mesc);
+  });
+  return promise;
+};
+
 /** 获取一个范围在[0,max)区间随机数
  * @param {number} max - 一个数字表示取值的上限
  */
@@ -18,11 +30,14 @@ const param = {
     getRandom: '*[name=get-random]',
     test: '*[name=test]',
     ul: 'ul',
+    bubbleSort: '*[name=bubble-sort]',
   },
   data() {
     return {
       array: [],
       items: [],
+      exchangePromise: Promise.resolve(1),
+      bubbleSortPromise: Promise.resolve(1),
     };
   },
   methods: {
@@ -56,11 +71,27 @@ const param = {
         this.methods.getRandom();
         this.methods.sendArray();
       });
+      // 冒泡排序
+      Dom.of(this.elements.bubbleSort).on('click', () => {
+        // 排序一次
+        this.methods.sortItemsByOrder();
+        console.log(this.data.array)
+        for (let i = 0; i < this.data.items.length - 1; i += 1) {
+          this.data.bubbleSortPromise = this.data.bubbleSortPromise
+            .then(() => {
+              const item1 = this.data.items[i];
+              const item2 = this.data.items[i + 1];
+              if (item1.data.value <= item2.data.value) { return false; } // 否定条件是不是也要高亮一下
+              this.data.items[i] = item2;
+              this.data.items[i + 1] = item1;
+              return this.methods.exchange(i, i + 1);
+            })
+            .then(() => wait(1000));
+        }
+        return this.data.bubbleSortPromise;
+      });
       // 测试方法
       Dom.of(this.elements.test).on('click', () => {
-        // const item = this.data.items[5];
-        // const random = Math.floor(Math.random() * 20) + 1;
-        // item.dispatchEvent('send', { order: random });
         const key1 = getRandom(20);
         let key2;
         for (let index = 0; index < 1000; index += 1) {
@@ -69,6 +100,10 @@ const param = {
         }
         this.methods.makeLiMoveTo(key1, key2);
       });
+    },
+    sortItemsByOrder() {
+      this.data.items.sort((a, b) => (a.data.order - b.data.order));
+      return this.data.items;
     },
     /** 操作Li位置的方法,2个li交换位置
      * @param {number} index1 - 一个数字，对应this.data.items[index1]
@@ -82,13 +117,18 @@ const param = {
         throw new Error(`index2不能是${index2}`);
       }
       if (index1 !== index2) {
-        const item1 = this.data.items[index1];
-        const item2 = this.data.items[index2];
-        const order1 = item1.data.order;
-        const order2 = item2.data.order;
-        item1.dispatchEvent('send', { order: order2 });
-        item2.dispatchEvent('send', { order: order1 });
+        this.data.exchangePromise = this.data.exchangePromise
+          .then(() => {
+            const item1 = this.data.items[index1];
+            const item2 = this.data.items[index2];
+            const order1 = item1.data.order;
+            const order2 = item2.data.order;
+            console.log('order', item1.data.value, item2.data.value)
+            item1.dispatchEvent('send', { order: order2 });
+            item2.dispatchEvent('send', { order: order1 });
+          });
       }
+      return this.data.exchangePromise;
     },
     /** 操作li位置的方法，把一个li移动到指定顺位 */
     /** 操作Li位置的方法,2个li交换位置
