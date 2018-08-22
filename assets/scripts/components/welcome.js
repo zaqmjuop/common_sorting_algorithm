@@ -38,6 +38,7 @@ const param = {
       items: [],
       exchangePromise: Promise.resolve(1),
       bubbleSortPromise: Promise.resolve(1),
+      bubbleSortedTimes: 0,
     };
   },
   methods: {
@@ -50,6 +51,13 @@ const param = {
       }
       return promise;
     },
+    getArray() {
+      if (this.data.items) {
+        this.methods.sortItemsByOrder();
+        this.data.array = this.data.items.map(item => item.data.value);
+      }
+      return this.data.array;
+    },
     /** 获取20个随机数 */
     getRandom(number = 20) {
       if (!Number.isSafeInteger(number)) { throw new TypeError(`参数number不能是${number}`); }
@@ -58,12 +66,42 @@ const param = {
         ary[index] = Math.floor(100 * Math.random());
       }
       this.data.array = ary;
+      this.data.bubbleSortedTimes = 0;
     },
     /** 按照20个随机数改变子组件li高度 */
     sendArray() {
       this.data.items.forEach((item, index) => {
         item.dispatchEvent('send', { value: this.data.array[index] });
       });
+    },
+    bubbleSortOnce() {
+      // 冒泡一次流程
+      if (this.data.bubbleSortedTimes > this.data.items.length - 1) {
+        return this.data.bubbleSortPromise;
+      }
+      this.data.bubbleSortPromise = this.data.bubbleSortPromise
+        .then(() => {
+          this.methods.getArray();
+          console.log(this.data.array);
+        });
+      for (let i = 0; i < this.data.items.length - this.data.bubbleSortedTimes - 1; i += 1) {
+        this.data.bubbleSortPromise = this.data.bubbleSortPromise
+          .then(() => {
+            const item1 = this.data.items[i];
+            const item2 = this.data.items[i + 1];
+            if (item1.data.value <= item2.data.value) {
+              item1.dispatchEvent('send', { method: 'highLight', time: 1000 });
+              item2.dispatchEvent('send', { method: 'highLight', time: 1000 });
+              return false;
+            } // 否定条件是不是也要高亮一下
+            this.data.items[i] = item2;
+            this.data.items[i + 1] = item1;
+            return this.methods.exchange(i, i + 1);
+          })
+          .then(() => wait(1000));
+      }
+      this.data.bubbleSortedTimes += 1;
+      return this.data.bubbleSortPromise;
     },
     bindEvents() {
       // 随机召唤数组
@@ -73,20 +111,8 @@ const param = {
       });
       // 冒泡排序
       Dom.of(this.elements.bubbleSort).on('click', () => {
-        // 排序一次
-        this.methods.sortItemsByOrder();
-        console.log(this.data.array)
-        for (let i = 0; i < this.data.items.length - 1; i += 1) {
-          this.data.bubbleSortPromise = this.data.bubbleSortPromise
-            .then(() => {
-              const item1 = this.data.items[i];
-              const item2 = this.data.items[i + 1];
-              if (item1.data.value <= item2.data.value) { return false; } // 否定条件是不是也要高亮一下
-              this.data.items[i] = item2;
-              this.data.items[i + 1] = item1;
-              return this.methods.exchange(i, i + 1);
-            })
-            .then(() => wait(1000));
+        for (let i = 0; i < this.data.array.length; i += 1) {
+          this.methods.bubbleSortOnce();
         }
         return this.data.bubbleSortPromise;
       });
@@ -123,7 +149,7 @@ const param = {
             const item2 = this.data.items[index2];
             const order1 = item1.data.order;
             const order2 = item2.data.order;
-            console.log('order', item1.data.value, item2.data.value)
+            console.log('替换', item1.data.value, item2.data.value);
             item1.dispatchEvent('send', { order: order2 });
             item2.dispatchEvent('send', { order: order1 });
           });
