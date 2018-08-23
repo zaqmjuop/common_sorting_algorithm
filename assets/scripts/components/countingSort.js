@@ -2,9 +2,9 @@ import li from './li';
 import Dom from '../dom';
 
 const param = {
-  name: 'selectionSort',
-  query: 'selectionSort',
-  url: './assets/templates/selectionSort.html',
+  name: 'countingSort',
+  query: 'countingSort',
+  url: './assets/templates/countingSort.html',
   data() {
     return {
       array: [],
@@ -89,7 +89,7 @@ const param = {
     return this.methods.init()
       .then(() => this.methods.bindEvents());
   },
-  implanted() { console.log('implanted selectionSort'); },
+  implanted() { console.log('implanted countingSort'); },
 };
 
 export default param;

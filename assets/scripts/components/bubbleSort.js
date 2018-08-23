@@ -22,7 +22,7 @@ const param = {
   selectors: {
     ul: 'ul',
     getRandom: '*[name=get-random]',
-    bubbleSort: '*[name=bubble-sort]',
+    sort: '*[name=sort]',
   },
   methods: {
     init() {
@@ -132,7 +132,7 @@ const param = {
         return this.methods.sendArray();
       });
       // 冒泡排序
-      Dom.of(this.elements.bubbleSort).on('click', () => {
+      Dom.of(this.elements.sort).on('click', () => {
         if (this.data.isRunning) {
           return console.warn('正在运行中,你可以刷新页面重新开始');
         }
