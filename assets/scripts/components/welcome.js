@@ -41,10 +41,10 @@ const param = {
     test: '*[name=test]',
     ul: 'ul',
     container: '.container',
-    bubbleSort: '.bubbleSort',
-    selectionSort: '.selectionSort',
-    insertionSort: '.insertionSort',
-    shellSort: '.shellSort',
+    bubbleSort: '*[name=bubbleSort]',
+    selectionSort: '*[name=selectionSort]',
+    insertionSort: '*[name=insertionSort]',
+    shellSort: '*[name=shellSort]',
   },
   data() {
     return {
@@ -182,16 +182,6 @@ const param = {
           });
         }
         return promise;
-      });
-      // 测试方法
-      Dom.of(this.elements.test).on('click', () => {
-        const key1 = getRandom(20);
-        let key2;
-        for (let index = 0; index < 1000; index += 1) {
-          key2 = getRandom(20) + 1;
-          if (key2 !== key1) { break; }
-        }
-        this.methods.makeLiMoveTo(key1, key2);
       });
     },
     sortItemsByOrder() {

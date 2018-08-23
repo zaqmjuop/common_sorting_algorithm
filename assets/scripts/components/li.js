@@ -27,7 +27,7 @@ const param = {
       if (Object.keys(this.present).includes('value')) {
         this.data.value = this.present.value || 0;
       }
-      this.data.order = this.data.primaryKey;
+      this.data.order = this.present.order || 1;
       this.methods.moveToOrder();
       this.methods.fill();
     },
@@ -71,7 +71,7 @@ const param = {
     moveToOrder() {
       Dom.of(this.template).css('left', `${(this.data.order - 1) * 40}px`);
       Dom.of(this.template).addClass('high-light');
-      setTimeout(() => Dom.of(this.template).removeClass('high-light'), 1000);
+      setTimeout(() => Dom.of(this.template).removeClass('high-light'), 200);
     },
   },
   created() {

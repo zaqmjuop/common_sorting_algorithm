@@ -59,12 +59,11 @@ const differDay = (datea, dateb) => {
 
 const isEmptyString = (content) => {
   // 是否是空Falsely或空字符串
-  const isFalsely =
-    (content === null) ||
-    (content === undefined) ||
-    (content === false) ||
-    (content === []) ||
-    (content === {});
+  const isFalsely = (content === null)
+    || (content === undefined)
+    || (content === false)
+    || (content === [])
+    || (content === {});
   const isEmpty = !String(content).match(/\S/);
   return isFalsely || isEmpty;
 };
@@ -134,6 +133,18 @@ const bubbleSort = (ary, callback) => {
   return res;
 };
 
+/**
+ * 返回一个等待若干好眠的promise
+ * @param {number} mesc - 等待的毫秒数
+ */
+const wait = (mesc) => {
+  if (!Number.isSafeInteger(mesc) || mesc < 0) { throw new TypeError(`mesc不能是${mesc}`); }
+  const promise = new Promise((resolve) => {
+    setTimeout(() => resolve(mesc), mesc);
+  });
+  return promise;
+};
+
 /** 工具方法集合 */
 const utils = {
   isElement,
@@ -152,6 +163,7 @@ const utils = {
   flat,
   getEnv,
   bubbleSort,
+  wait,
 };
 
 export default utils;
