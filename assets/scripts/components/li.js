@@ -36,6 +36,7 @@ const param = {
       this.addEventListener('send', (event) => {
         if (Number.isSafeInteger(event.detail.value)) {
           this.data.value = event.detail.value;
+          Dom.of(this.template).removeClass('sorted');
           this.methods.fill();
         }
         if (Number.isSafeInteger(event.detail.order) && event.detail.order !== this.data.order) {
@@ -47,6 +48,8 @@ const param = {
           if (event.detail.method === 'highLight') {
             const time = Number(event.detail.time) || -1;
             this.methods.highLight(time);
+          } else if (event.detail.method === 'sorted') {
+            Dom.of(this.template).addClass('sorted');
           }
         }
       });

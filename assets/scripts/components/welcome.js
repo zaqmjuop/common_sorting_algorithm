@@ -1,5 +1,15 @@
 import Dom from '../dom';
 import li from './li';
+import bubbleSort from './bubbleSort';
+import selectionSort from './selectionSort';
+import insertionSort from './insertionSort';
+import shellSort from './shellSort';
+import Component from './component';
+
+const bubbleSortParam = Component.of(bubbleSort);
+const selectionSortParam = Component.of(selectionSort);
+const insertionSortParam = Component.of(insertionSort);
+const shellSortParam = Component.of(shellSort);
 
 /**
  * 返回一个等待若干好眠的promise
@@ -30,7 +40,11 @@ const param = {
     getRandom: '*[name=get-random]',
     test: '*[name=test]',
     ul: 'ul',
-    bubbleSort: '*[name=bubble-sort]',
+    container: '.container',
+    bubbleSort: '.bubbleSort',
+    selectionSort: '.selectionSort',
+    insertionSort: '.insertionSort',
+    shellSort: '.shellSort',
   },
   data() {
     return {
@@ -39,6 +53,8 @@ const param = {
       exchangePromise: Promise.resolve(1),
       bubbleSortPromise: Promise.resolve(1),
       bubbleSortedTimes: 0,
+      isBubbleSortFinished: false,
+      currentPromise: null,
     };
   },
   methods: {
@@ -47,7 +63,11 @@ const param = {
       let promise = Promise.resolve(1);
       for (let index = 0; index < 20; index += 1) {
         promise = promise.then(() => this.appendChild(li, this.elements.ul, -1))
-          .then(item => this.data.items.push(item));
+          .then(item => this.data.items.push(item))
+          .then(() => {
+            this.data.current = bubbleSortParam;
+            return this.appendChild(this.data.current, this.elements.container, 0);
+          });
       }
       return promise;
     },
@@ -76,45 +96,92 @@ const param = {
     },
     bubbleSortOnce() {
       // 冒泡一次流程
-      if (this.data.bubbleSortedTimes > this.data.items.length - 1) {
+      if (this.data.bubbleSortedTimes >= this.data.items.length - 1) {
+        console.log('排序已经结束，请点击最左侧按钮从新开始');
         return this.data.bubbleSortPromise;
       }
+      // 排序开始前准备
       this.data.bubbleSortPromise = this.data.bubbleSortPromise
         .then(() => {
           this.methods.getArray();
+          this.data.isBubbleSortFinished = true;
           console.log(this.data.array);
         });
+      // -1 是因为若长度20那么应比较19次
       for (let i = 0; i < this.data.items.length - this.data.bubbleSortedTimes - 1; i += 1) {
         this.data.bubbleSortPromise = this.data.bubbleSortPromise
           .then(() => {
             const item1 = this.data.items[i];
             const item2 = this.data.items[i + 1];
+            let result = false;
             if (item1.data.value <= item2.data.value) {
+              // 高亮一下
               item1.dispatchEvent('send', { method: 'highLight', time: 1000 });
               item2.dispatchEvent('send', { method: 'highLight', time: 1000 });
-              return false;
-            } // 否定条件是不是也要高亮一下
-            this.data.items[i] = item2;
-            this.data.items[i + 1] = item1;
-            return this.methods.exchange(i, i + 1);
+            } else {
+              this.data.items[i] = item2;
+              this.data.items[i + 1] = item1;
+              this.data.isBubbleSortFinished = false;
+              result = this.methods.exchange(i, i + 1);
+            }
+            return result;
+          })
+          .then(() => {
+            // 判断该条数据已经冒泡
+            const isBubbled = (i >= (this.data.items.length - this.data.bubbleSortedTimes - 2));
+            if (isBubbled) { this.data.items[i + 1].dispatchEvent('send', { method: 'sorted' }); }
           })
           .then(() => wait(1000));
       }
-      this.data.bubbleSortedTimes += 1;
+      // 一次冒泡结束
+      this.data.bubbleSortPromise = this.data.bubbleSortPromise.then(() => {
+        this.methods.getArray();
+        // 排序结束条件
+        const isFinished = this.data.isBubbleSortFinished
+          || (this.data.items.length - this.data.bubbleSortedTimes - 2 === 0);
+        if (isFinished) { console.log('冒泡完成'); }
+        this.data.bubbleSortedTimes += 1;
+      });
       return this.data.bubbleSortPromise;
     },
+    changeCurrent(cpt) {
+      if (!Component.isComponent(cpt)) { throw new TypeError(`${cpt}不是组件`); }
+      if (this.data.current === cpt) { return Promise.resolve(cpt); }
+      const beforeCurrent = this.data.current;
+      this.data.current = cpt;
+      return this.replaceChild(this.data.current, beforeCurrent);
+    },
     bindEvents() {
+      Dom.of(this.elements.bubbleSort).on('click', () => this.methods.changeCurrent(bubbleSortParam));
+      Dom.of(this.elements.selectionSort).on('click', () => this.methods.changeCurrent(selectionSortParam));
+      Dom.of(this.elements.insertionSort).on('click', () => this.methods.changeCurrent(insertionSortParam));
+      Dom.of(this.elements.shellSort).on('click', () => this.methods.changeCurrent(shellSortParam));
       // 随机召唤数组
       Dom.of(this.elements.getRandom).on('click', () => {
-        this.methods.getRandom();
-        this.methods.sendArray();
+        if (this.data.currentPromise) {
+          console.log('有任务尚未完成');
+        } else {
+          this.data.bubbleSortedTimes = 0;
+          this.data.isBubbleSortFinished = false;
+          this.data.bubbleSortPromise = Promise.resolve(1);
+          this.methods.getRandom();
+          this.methods.sendArray();
+        }
       });
       // 冒泡排序
       Dom.of(this.elements.bubbleSort).on('click', () => {
+        let promise = Promise.resolve(1);
         for (let i = 0; i < this.data.array.length; i += 1) {
-          this.methods.bubbleSortOnce();
+          promise = promise.then(() => {
+            if (this.data.isBubbleSortFinished) {
+              this.data.currentPromise = null;
+              this.data.isBubbleSortFinished = false;
+              return false;
+            }
+            return this.methods.bubbleSortOnce();
+          });
         }
-        return this.data.bubbleSortPromise;
+        return promise;
       });
       // 测试方法
       Dom.of(this.elements.test).on('click', () => {
