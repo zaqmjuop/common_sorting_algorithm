@@ -68,7 +68,7 @@ const param = {
       /** 接受消息改变位置 */
     },
     fall() {
-      Dom.of(this.template).css('bottom', '-150px');
+      Dom.of(this.template).css('bottom', '-300px');
     },
     unfall() {
       Dom.of(this.template).css('bottom', '0');

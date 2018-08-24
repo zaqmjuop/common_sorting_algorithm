@@ -11,6 +11,7 @@ const param = {
       array: [],
       items: [],
       container: [],
+      sortTimes: 0,
     };
   },
   selectors: {
@@ -86,8 +87,8 @@ const param = {
         for (let i = 0; i < this.data.items.length; i += 1) {
           promise = promise
             .then(() => {
-              return this.methods.insertContainer(this.data.items[i]);
-            }).then(() => utils.wait(1));
+              return this.methods.sortOnce();
+            }).then(() => utils.wait(1000));
         }
         promise = promise.then(() => {
           const res = this.data.container.map(item => item.data.value);
@@ -96,7 +97,25 @@ const param = {
       });
     },
     sortOnce() {
-      let promise = Promise.resolve();
+      let promise = Promise.resolve()
+        .then(() => {
+          const cpt = this.data.items[this.data.sortTimes];
+          this.methods.insertContainer(cpt);
+          this.data.container.forEach((item, index) => {
+            if (item !== cpt) {
+              item.dispatchEvent('send', { order: index + 1 });
+            }
+          });
+          return utils.wait(1000);
+        })
+        .then(() => {
+          const cpt = this.data.items[this.data.sortTimes];
+          const order = this.data.container.findIndex(item => item === cpt) + 1;
+          cpt.dispatchEvent('send', { order });
+          cpt.dispatchEvent('send', { method: 'fall' });
+          this.data.sortTimes += 1;
+          return utils.wait(1000);
+        });
       return promise;
     },
     insertContainer(cpt) {
