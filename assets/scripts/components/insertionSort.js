@@ -12,6 +12,7 @@ const param = {
       items: [],
       container: [],
       sortTimes: 0,
+      compared: false,
     };
   },
   selectors: {
@@ -46,6 +47,7 @@ const param = {
     sendArray() {
       this.data.items.forEach((item, index) => {
         item.dispatchEvent('send', { value: this.data.array[index] });
+        item.dispatchEvent('send', { method: 'unfall' });
       });
     },
     /** 操作Li位置的方法,2个li交换位置
@@ -86,21 +88,35 @@ const param = {
         let promise = Promise.resolve();
         for (let i = 0; i < this.data.items.length; i += 1) {
           promise = promise
-            .then(() => {
-              return this.methods.sortOnce();
-            }).then(() => utils.wait(1000));
+            .then(() => this.methods.sortOnce())
+            .then(() => utils.wait(1000));
         }
         promise = promise.then(() => {
           const res = this.data.container.map(item => item.data.value);
-          console.log('res', res);
-        })
+          console.log('排序完成', res);
+        });
       });
     },
     sortOnce() {
-      let promise = Promise.resolve()
+      let promise = Promise.resolve(this.data.compared = false);
+      for (let i = 0; i < this.data.container.length; i += 1) {
+        promise = promise.then(() => {
+          if (this.data.compared) { return false; }
+          const cpt = this.data.items[this.data.sortTimes];
+          const item = this.data.container[i];
+          item.dispatchEvent('send', { method: 'highLight', time: 1000 });
+          if (item.data.value > cpt.data.value) {
+            this.data.compared = true;
+          }
+          return utils.wait(1000);
+        });
+      }
+
+      promise = promise
         .then(() => {
           const cpt = this.data.items[this.data.sortTimes];
           this.methods.insertContainer(cpt);
+          // 在这里加比较动画
           this.data.container.forEach((item, index) => {
             if (item !== cpt) {
               item.dispatchEvent('send', { order: index + 1 });
@@ -112,9 +128,10 @@ const param = {
           const cpt = this.data.items[this.data.sortTimes];
           const order = this.data.container.findIndex(item => item === cpt) + 1;
           cpt.dispatchEvent('send', { order });
+          cpt.dispatchEvent('send', { method: 'select' });
           cpt.dispatchEvent('send', { method: 'fall' });
           this.data.sortTimes += 1;
-          return utils.wait(1000);
+          return utils.wait(100);
         });
       return promise;
     },

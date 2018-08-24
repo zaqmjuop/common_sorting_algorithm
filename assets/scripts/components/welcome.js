@@ -1,6 +1,5 @@
 import Component from './component';
 import Dom from '../dom';
-import li from './li';
 import bubbleSort from './bubbleSort';
 import selectionSort from './selectionSort';
 import insertionSort from './insertionSort';
