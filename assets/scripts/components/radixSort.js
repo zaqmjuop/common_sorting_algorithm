@@ -31,7 +31,7 @@ const param = {
       if (!Number.isSafeInteger(number)) { throw new TypeError(`参数number不能是${number}`); }
       const ary = new Array(number);
       for (let index = 0; index < ary.length; index += 1) {
-        ary[index] = Math.floor(100 * Math.random());
+        ary[index] = Math.floor(100 * Math.random()) + 1;
       }
       this.data.array = ary;
       this.data.bubbleSortedTimes = 0;

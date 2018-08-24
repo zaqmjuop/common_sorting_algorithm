@@ -47,21 +47,40 @@ const param = {
         if (event.detail.method) {
           if (event.detail.method === 'highLight') {
             const time = Number(event.detail.time) || -1;
-            this.methods.highLight(time);
+            if (event.detail.backColor) {
+              this.methods.highLight(time, event.detail.backColor);
+            } else {
+              this.methods.highLight(time);
+            }
           } else if (event.detail.method === 'sorted') {
             Dom.of(this.template).addClass('sorted');
+          } else if (event.detail.method === 'select') {
+            this.methods.select();
+          } else if (event.detail.method === 'unselect') {
+            this.methods.unselect();
           }
         }
       });
       /** 接受消息改变位置 */
     },
+    unselect() {
+      Dom.of(this.template).removeClass('select');
+    },
+    select() {
+      Dom.of(this.template).addClass('select');
+    },
     /** 高亮
      * @param {number} mesc - 高亮时间
+     * @param {string} backColor - background-color参数
      */
-    highLight(mesc) {
+    highLight(mesc, backColor) {
       Dom.of(this.template).addClass('high-light');
       if (arguments.length > 0 && Number.isSafeInteger(mesc) && mesc >= 0) {
         setTimeout(() => Dom.of(this.template).removeClass('high-light'), mesc);
+      }
+      if (arguments.length > 1 && (typeof backColor === 'string')) {
+        Dom.of(this.template).css('background-color', backColor);
+        setTimeout(() => Dom.of(this.template).css('background-color', ''), mesc);
       }
     },
     fill() {
