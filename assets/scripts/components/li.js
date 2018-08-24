@@ -58,10 +58,20 @@ const param = {
             this.methods.select();
           } else if (event.detail.method === 'unselect') {
             this.methods.unselect();
+          } else if (event.detail.method === 'unfall') {
+            this.methods.unfall();
+          } else if (event.detail.method === 'fall') {
+            this.methods.fall();
           }
         }
       });
       /** 接受消息改变位置 */
+    },
+    fall() {
+      Dom.of(this.template).css('bottom', '-150px');
+    },
+    unfall() {
+      Dom.of(this.template).css('bottom', '0');
     },
     unselect() {
       Dom.of(this.template).removeClass('select');

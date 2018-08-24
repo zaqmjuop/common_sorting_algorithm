@@ -1,5 +1,6 @@
 import li from './li';
 import Dom from '../dom';
+import utils from '../utils';
 
 const param = {
   name: 'insertionSort',
@@ -9,12 +10,14 @@ const param = {
     return {
       array: [],
       items: [],
+      container: [],
     };
   },
   selectors: {
     ul: 'ul',
     getRandom: '*[name=get-random]',
     sort: '*[name=sort]',
+    container: '*[name=container]',
   },
   methods: {
     init() {
@@ -78,6 +81,36 @@ const param = {
         this.methods.getRandom();
         return this.methods.sendArray();
       });
+      Dom.of(this.elements.sort).on('click', () => {
+        let promise = Promise.resolve();
+        for (let i = 0; i < this.data.items.length; i += 1) {
+          promise = promise
+            .then(() => {
+              return this.methods.insertContainer(this.data.items[i]);
+            }).then(() => utils.wait(1));
+        }
+        promise = promise.then(() => {
+          const res = this.data.container.map(item => item.data.value);
+          console.log('res', res);
+        })
+      });
+    },
+    sortOnce() {
+      let promise = Promise.resolve();
+      return promise;
+    },
+    insertContainer(cpt) {
+      for (let i = 0; i < this.data.container.length; i += 1) {
+        const item = this.data.container[i];
+        if (cpt.data.value < item.data.value) {
+          this.data.container.splice(i, 0, cpt);
+          break;
+        }
+      }
+      if (!this.data.container.includes(cpt)) {
+        this.data.container.push(cpt);
+      }
+      return this.data.container;
     },
     getArray() {
       const array = this.data.items.map(item => item.data.value);

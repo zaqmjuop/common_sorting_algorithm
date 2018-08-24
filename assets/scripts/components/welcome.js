@@ -78,15 +78,11 @@ const param = {
   methods: {
     /** 添加20个子组件li */
     init() {
-      let promise = Promise.resolve(1);
-      for (let index = 0; index < 20; index += 1) {
-        promise = promise.then(() => this.appendChild(li, this.elements.ul, -1))
-          .then(item => this.data.items.push(item))
-          .then(() => {
-            this.data.current = selectionSortParam;
-            return this.appendChild(this.data.current, this.elements.container, 0);
-          });
-      }
+      const promise = Promise.resolve()
+        .then(() => {
+          this.data.current = insertionSortParam;
+          return this.appendChild(this.data.current, this.elements.container, 0);
+        });
       return promise;
     },
     getArray() {
@@ -180,33 +176,6 @@ const param = {
       Dom.of(this.elements.countingSort).on('click', () => this.methods.changeCurrent(countingSortParam));
       Dom.of(this.elements.bucketSort).on('click', () => this.methods.changeCurrent(bucketSortParam));
       Dom.of(this.elements.radixSort).on('click', () => this.methods.changeCurrent(radixSortParam));
-      // 随机召唤数组
-      Dom.of(this.elements.getRandom).on('click', () => {
-        if (this.data.currentPromise) {
-          console.log('有任务尚未完成');
-        } else {
-          this.data.bubbleSortedTimes = 0;
-          this.data.isBubbleSortFinished = false;
-          this.data.bubbleSortPromise = Promise.resolve(1);
-          this.methods.getRandom();
-          this.methods.sendArray();
-        }
-      });
-      // 冒泡排序
-      Dom.of(this.elements.bubbleSort).on('click', () => {
-        let promise = Promise.resolve(1);
-        for (let i = 0; i < this.data.array.length; i += 1) {
-          promise = promise.then(() => {
-            if (this.data.isBubbleSortFinished) {
-              this.data.currentPromise = null;
-              this.data.isBubbleSortFinished = false;
-              return false;
-            }
-            return this.methods.bubbleSortOnce();
-          });
-        }
-        return promise;
-      });
     },
     sortItemsByOrder() {
       this.data.items.sort((a, b) => (a.data.order - b.data.order));
