@@ -79,7 +79,7 @@ const param = {
     init() {
       const promise = Promise.resolve()
         .then(() => {
-          this.data.current = insertionSortParam;
+          this.data.current = shellSortParam;
           return this.appendChild(this.data.current, this.elements.container, 0);
         });
       return promise;

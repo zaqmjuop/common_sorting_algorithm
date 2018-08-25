@@ -78,10 +78,76 @@ const param = {
         this.methods.getRandom();
         return this.methods.sendArray();
       });
+      // 排序
+      Dom.of(this.elements.sort).on('click', () => {
+        this.methods.shellSort(this.data.array);
+        return console.log(this.data.array);
+      });
     },
     getArray() {
       const array = this.data.items.map(item => item.data.value);
       this.data.array = array;
+      return array;
+    },
+    /** 插入排序 改变原数组 */
+    insertionSort(array) {
+      const container = []; // 准备一个空数组，向空数组内插入
+      // 一次插入动作
+      const onceInsert = (member) => {
+        let isInserted = false;
+        for (let i = 0; i < container.length; i += 1) {
+          const item = container[i];
+          // 插入条件
+          if (item > member) {
+            container.splice(i, 0, member); // 插入
+            isInserted = true;
+            break;
+          }
+        }
+        // 若container中没有比member更大的值时
+        if (!isInserted) { container.push(member); }
+        return container;
+      };
+      // 将原数组中的值有序的插入到container
+      array.forEach(item => onceInsert(item));
+      // 改变原数组
+      array.splice(0, array.length, ...container);
+    },
+    onceShellSort() {
+    },
+    /** 希尔排序 改变原数组 */
+    shellSort(array) {
+      for (let increment = Math.floor(array.length / 2); increment >= 1; increment = Math.floor(increment / 2)) {
+        console.log(increment);
+        // 分组 -> 排序 -> 替换原值
+        // 分组,按照影响的index分组
+        const effectIndexTeams = []; // 一个二元数组，每个成员是一个数组记录影响的index
+        for (let index = 0; index < increment; index += 1) {
+          const effectIndexTeam = []; // 影响的Index数组
+          let effectIndex = index; // 影响的index
+          while (effectIndex < array.length) {
+            effectIndexTeam.push(effectIndex);
+            effectIndex += increment;
+          }
+          effectIndexTeams.push(effectIndexTeam);
+        }
+
+        effectIndexTeams.forEach((effectIndexTeam) => {
+          // 排序
+
+          const effectTeam = effectIndexTeam.map(effectIndex => array[effectIndex]);
+
+          // 这里插入排序effectTeam
+          this.methods.insertionSort(effectTeam);
+          // 改变原值
+          console.log(effectTeam)
+          effectIndexTeam.forEach((effectIndex, index) => {
+            console.log(effectIndex)
+            array[effectIndex] = effectTeam[index];
+            // array.splice(effectIndex, 1, effectTeam[effectIndex]);
+          });
+        });
+      }
       return array;
     },
   },
