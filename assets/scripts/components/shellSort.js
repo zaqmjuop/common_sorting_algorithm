@@ -118,7 +118,6 @@ const param = {
     /** 希尔排序 改变原数组 */
     shellSort(array) {
       for (let increment = Math.floor(array.length / 2); increment >= 1; increment = Math.floor(increment / 2)) {
-        console.log(increment);
         // 分组 -> 排序 -> 替换原值
         // 分组,按照影响的index分组
         const effectIndexTeams = []; // 一个二元数组，每个成员是一个数组记录影响的index
@@ -131,20 +130,14 @@ const param = {
           }
           effectIndexTeams.push(effectIndexTeam);
         }
-
         effectIndexTeams.forEach((effectIndexTeam) => {
           // 排序
-
           const effectTeam = effectIndexTeam.map(effectIndex => array[effectIndex]);
-
           // 这里插入排序effectTeam
           this.methods.insertionSort(effectTeam);
           // 改变原值
-          console.log(effectTeam)
           effectIndexTeam.forEach((effectIndex, index) => {
-            console.log(effectIndex)
-            array[effectIndex] = effectTeam[index];
-            // array.splice(effectIndex, 1, effectTeam[effectIndex]);
+            array.splice(effectIndex, 1, effectTeam[index]);
           });
         });
       }
