@@ -31,7 +31,7 @@ const param = {
       if (!Number.isSafeInteger(number)) { throw new TypeError(`参数number不能是${number}`); }
       const ary = new Array(number);
       for (let index = 0; index < ary.length; index += 1) {
-        ary[index] = Math.floor(100 * Math.random()) + 1;
+        ary[index] = Math.trunc(100 * Math.random()) + 1;
       }
       this.data.array = ary;
       this.data.bubbleSortedTimes = 0;
@@ -78,6 +78,39 @@ const param = {
         this.methods.getRandom();
         return this.methods.sendArray();
       });
+      Dom.of(this.elements.sort).on('click', () => {
+        console.log('点击了排序');
+      });
+    },
+    /** 把一个数组切碎成多元数组 */
+    shredding(ary) {
+      if (!(ary instanceof Array)) { return false; }
+      const halve = (array) => {
+        // 二分一个数组
+        if (array.length <= 1) { return array; }
+        const rightSrart = Math.ceil(array.length / 2);
+        const left = array.slice(0, rightSrart);
+        const right = array.slice(rightSrart, array.length);
+        return [left, right];
+      };
+      const shredding = (array) => {
+        if (array instanceof Array) {
+          const isGrassRootsInNeed = array.every(item => !(item instanceof Array)) && array.length > 2;
+          if (isGrassRootsInNeed) {
+            // 负责二分最底层
+            const halved = halve(array);
+            if (halved[0].length > 2) { // 遍历前加一次遍历条件，减少遍历操作次数
+              shredding(halved);
+            }
+            array.splice(0, array.length, ...halved);
+          } else {
+            // 负责递归最底层
+            array.forEach(item => shredding(item));
+          }
+        }
+      };
+      shredding(ary);
+      return ary;
     },
     getArray() {
       const array = this.data.items.map(item => item.data.value);

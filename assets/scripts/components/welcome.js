@@ -22,6 +22,8 @@ const countingSortParam = Component.of(countingSort);
 const bucketSortParam = Component.of(bucketSort);
 const radixSortParam = Component.of(radixSort);
 
+const homeParam = mergeSortParam;
+
 /**
  * 返回一个等待若干好眠的promise
  * @param {number} mesc - 等待的毫秒数
@@ -39,7 +41,7 @@ const wait = (mesc) => {
  */
 const getRandom = (max = 20) => {
   if (!Number.isSafeInteger(max) || max < 0) { throw new TypeError(`取值上限不能是${max}`); }
-  return Math.floor(Math.random() * max);
+  return Math.trunc(Math.random() * max);
 };
 /** 应用主体组件 */
 
@@ -79,7 +81,7 @@ const param = {
     init() {
       const promise = Promise.resolve()
         .then(() => {
-          this.data.current = shellSortParam;
+          this.data.current = homeParam;
           return this.appendChild(this.data.current, this.elements.container, 0);
         });
       return promise;
@@ -96,7 +98,7 @@ const param = {
       if (!Number.isSafeInteger(number)) { throw new TypeError(`参数number不能是${number}`); }
       const ary = new Array(number);
       for (let index = 0; index < ary.length; index += 1) {
-        ary[index] = Math.floor(100 * Math.random()) + 1;
+        ary[index] = Math.trunc(100 * Math.random()) + 1;
       }
       this.data.array = ary;
       this.data.bubbleSortedTimes = 0;

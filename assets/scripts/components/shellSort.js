@@ -31,7 +31,7 @@ const param = {
       if (!Number.isSafeInteger(number)) { throw new TypeError(`参数number不能是${number}`); }
       const ary = new Array(number);
       for (let index = 0; index < ary.length; index += 1) {
-        ary[index] = Math.floor(100 * Math.random()) + 1;
+        ary[index] = Math.trunc(100 * Math.random()) + 1;
       }
       this.data.array = ary;
       this.data.bubbleSortedTimes = 0;
@@ -117,7 +117,7 @@ const param = {
     },
     /** 希尔排序 改变原数组 */
     shellSort(array) {
-      for (let increment = Math.floor(array.length / 2); increment >= 1; increment = Math.floor(increment / 2)) {
+      for (let increment = Math.trunc(array.length / 2); increment >= 1; increment = Math.trunc(increment / 2)) {
         // 分组 -> 排序 -> 替换原值
         // 分组,按照影响的index分组
         const effectIndexTeams = []; // 一个二元数组，每个成员是一个数组记录影响的index
