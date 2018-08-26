@@ -113,8 +113,6 @@ const param = {
       // 改变原数组
       array.splice(0, array.length, ...container);
     },
-    onceShellSort() {
-    },
     /** 希尔排序 改变原数组 */
     shellSort(array) {
       for (let increment = Math.trunc(array.length / 2); increment >= 1; increment = Math.trunc(increment / 2)) {
