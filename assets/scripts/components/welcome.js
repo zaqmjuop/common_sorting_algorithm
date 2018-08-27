@@ -22,7 +22,7 @@ const countingSortParam = Component.of(countingSort);
 const bucketSortParam = Component.of(bucketSort);
 const radixSortParam = Component.of(radixSort);
 
-const initParam = quickSortParam;
+const initParam = countingSortParam;
 
 /**
  * 返回一个等待若干好眠的promise
