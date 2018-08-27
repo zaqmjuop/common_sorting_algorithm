@@ -22,7 +22,7 @@ const countingSortParam = Component.of(countingSort);
 const bucketSortParam = Component.of(bucketSort);
 const radixSortParam = Component.of(radixSort);
 
-const homeParam = mergeSortParam;
+const initParam = quickSortParam;
 
 /**
  * 返回一个等待若干好眠的promise
@@ -81,7 +81,7 @@ const param = {
     init() {
       const promise = Promise.resolve()
         .then(() => {
-          this.data.current = homeParam;
+          this.data.current = initParam;
           return this.appendChild(this.data.current, this.elements.container, 0);
         });
       return promise;

@@ -10,3 +10,6 @@ document.addEventListener('DOMContentLoaded', () => {
   window.resizeTo(window.innerWidth, window.innerHeight);
   main();
 });
+// 十分恶心的东西 你算吧
+// var a = 10;
+// ++a**a%a--
