@@ -116,6 +116,7 @@ const param = {
       Dom.of(this.elements.sort).on('click', () => {
         console.log('点击了排序');
         radixSort(this.data.array);
+        console.log(this.data.array);
       });
     },
     getArray() {

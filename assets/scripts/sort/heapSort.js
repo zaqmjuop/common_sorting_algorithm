@@ -30,6 +30,8 @@ const buildMaxHeap = (array) => {
 };
 
 const heapSort = (array) => {
+  if (!(array instanceof Array)) { throw new TypeError(`${array} 不是Array`); }
+  // 设置一个长度为10的容器，每个成员是一个空数组
   buildMaxHeap(array);
   for (let i = array.length - 1; i > 0; i -= 1) {
     swap(array, 0, i);
@@ -37,3 +39,5 @@ const heapSort = (array) => {
   }
   return array;
 };
+
+export default heapSort;

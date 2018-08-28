@@ -31,6 +31,6 @@ const radixSort = (array) => {
     initContainer();
   }
   return array;
-}
+};
 
 export default radixSort;

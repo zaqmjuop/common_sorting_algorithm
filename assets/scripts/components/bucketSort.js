@@ -1,6 +1,6 @@
 import li from './li';
 import Dom from '../dom';
-import sort from '../sort';
+import { insertionSort } from '../sort/index';
 
 const bucketSort = (array) => {
   if (!(array instanceof Array)) { return false; }
@@ -32,7 +32,7 @@ const bucketSort = (array) => {
     container[index].push(item);
   });
   // 对容器每组进行插入排序
-  container.forEach(item => sort(item));
+  container.forEach(item => insertionSort(item));
   // 替换原数组
   array.splice(0, array.length);
   container.forEach(item => array.push(...item));
@@ -119,6 +119,7 @@ const param = {
       Dom.of(this.elements.sort).on('click', () => {
         console.log('点击了排序');
         bucketSort(this.data.array);
+        console.log(this.data.array);
       });
     },
     getArray() {

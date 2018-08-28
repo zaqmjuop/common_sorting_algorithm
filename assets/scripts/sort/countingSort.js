@@ -1,4 +1,5 @@
-function countingSort(array) {
+const countingSort = (array) => {
+  if (!(array instanceof Array)) { throw new TypeError(`${array} 不是Array`); }
   // 筛选数组中一共存在几种值，并将其排序
   const keys = [...new Set(array)];
   keys.sort((a, b) => a - b);
@@ -17,4 +18,6 @@ function countingSort(array) {
     });
   });
   return array;
-}
+};
+
+export default countingSort;

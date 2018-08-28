@@ -1,5 +1,6 @@
 import li from './li';
 import Dom from '../dom';
+import { mergeSort } from '../sort/index';
 
 const param = {
   name: 'mergeSort',
@@ -80,7 +81,7 @@ const param = {
       });
       Dom.of(this.elements.sort).on('click', () => {
         console.log('点击了排序');
-        this.methods.mergeSort(this.data.array);
+        mergeSort(this.data.array);
         console.log(this.data.array);
       });
     },

@@ -1,3 +1,5 @@
+import insertionSort from './insertionSort';
+
 const bucketSort = (array) => {
   if (!(array instanceof Array)) { throw new TypeError(`${array} 不是Array`); }
   const DEFAULT_BUCKET_SIZE = 5;
@@ -28,11 +30,11 @@ const bucketSort = (array) => {
     container[index].push(item);
   });
   // 对容器每组进行插入排序
-  container.forEach(item => sort(item));
+  container.forEach(item => insertionSort(item));
   // 替换原数组
   array.splice(0, array.length);
   container.forEach(item => array.push(...item));
   return array;
-}
+};
 
 export default bucketSort;
