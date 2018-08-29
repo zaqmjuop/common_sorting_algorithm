@@ -1,5 +1,25 @@
 import li from './li';
 import Dom from '../dom';
+import { shellSort } from '../sort/index';
+
+function* colorNameGenerator() {
+  const color = [80, 80, 80];
+  let time = 0;
+  while (1) {
+    time += 1;
+    const index = time % 3;
+    let value = color[index] + ((time % 16) * 16);
+    if (value > 255) { value -= 255; }
+    color.splice(index, 1, value);
+    const color16 = color.map(item => (item).toString(16));
+    const name = `#${color16.join('')}`;
+    console.log(time)
+    yield name;
+  }
+}
+const colorNameStore = colorNameGenerator();
+// 获取一个颜色值
+const takeColorName = () => colorNameStore.next().value;
 
 const param = {
   name: 'shellSort',
@@ -80,8 +100,36 @@ const param = {
       });
       // 排序
       Dom.of(this.elements.sort).on('click', () => {
-        this.methods.shellSort(this.data.array);
-        return console.log(this.data.array);
+        // 分组 排序 替换原值
+        let promise = Promise.resolve()
+          .then(() => {
+            // 设置增量
+            this.data.increment = Math.trunc(this.data.array.length / 2);
+            // 设置容器
+            this.data.containers = [];
+            for (let index = 0; index < this.data.increment; index += 1) {
+              this.data.containers.push([]);
+            }
+            // 分组
+            for (let index = 0; index < this.data.containers.length; index += 1) {
+              let effectIndex = index;
+              while (effectIndex < this.data.items.length) {
+                const item = this.data.items[effectIndex];
+                this.data.containers[index].push(item);
+                effectIndex += this.data.increment;
+              }
+            }
+            // 高亮分组
+            this.data.containers.forEach((team) => {
+              const color = takeColorName();
+              team.forEach((item) => {
+                Dom.of(item.template).css('backgroundColor', color);
+              });
+            });
+            console.log(this.data.containers)
+          });
+        console.log(this.data.array);
+        return promise;
       });
     },
     getArray() {
