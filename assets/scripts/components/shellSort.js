@@ -119,6 +119,8 @@ const param = {
                 effectIndex += this.data.increment;
               }
             }
+            console.log(this.data.containers)
+          }).then(() => {
             // 高亮分组
             this.data.containers.forEach((team) => {
               const color = takeColorName();
@@ -126,7 +128,17 @@ const param = {
                 Dom.of(item.template).css('backgroundColor', color);
               });
             });
-            console.log(this.data.containers)
+          }).then(() => {
+            // 插入排序
+            let insertion = Promise.resolve();
+            const stage = [];
+            const team = this.data.containers[0];
+            team.forEach(() => {
+              insertion = insertion
+                .then(() => {
+                  /** @todo */
+                })
+            });
           });
         console.log(this.data.array);
         return promise;
