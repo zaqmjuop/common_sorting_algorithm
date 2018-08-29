@@ -5,7 +5,6 @@
   <style scoped>
     .board {
       border: 2px solid red;
-      text-align: center;
     }
 
     ul.list {
@@ -16,9 +15,31 @@
       align-items: flex-end;
       padding: 0;
       margin: 0;
-      min-height: 300px;
+      min-height: 150px;
       min-width: 800px;
       position: relative;
+    }
+
+    p {
+      min-height: 2em;
+      margin: 0;
+    }
+
+    li {
+      width: 30px;
+      color: #000;
+      font-size: 1.2em;
+      font-weight: 700;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      margin-right: 10px;
+      z-index: 0;
+      min-height: 1em;
+    }
+
+    ul.counting {
+      min-height: 1em;
     }
   </style>
 </head>
@@ -30,7 +51,27 @@
       <button name="sort">计数排序</button>
     </div>
     <div class="board">
-      <ul class="list">
+      <p>
+        最大值：
+        <span name="max"></span>
+        最小值：
+        <span name="min"></span>
+      </p>
+      <ul class="list"></ul>
+      <ul name="bottom-list" class="list"></ul>
+      <ul class="list counting">
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
       </ul>
     </div>
   </section>

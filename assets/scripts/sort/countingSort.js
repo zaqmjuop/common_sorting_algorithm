@@ -1,12 +1,20 @@
 const countingSort = (array) => {
-  if (!(array instanceof Array)) { throw new TypeError(`${array} 不是Array`); }
-  // 筛选数组中一共存在几种值，并将其排序
-  const keys = [...new Set(array)];
-  keys.sort((a, b) => a - b);
-  // 设一个容器，容器的每个成员是一个数组，值相同的成员放到同一数组
-  const container = keys.map(() => []);
+  if (!(array instanceof Array)) { return false; }
+  if (array.some(item => !Number.isSafeInteger(item))) { return false; }
+  // 确定范围
+  let max = array[0];
+  let min = array[0];
   array.forEach((item) => {
-    const index = keys.indexOf(item);
+    if (item > max) { max = item; }
+    if (item < min) { min = item; }
+  });
+  // 设一个容器，容器的每个成员是一个数组，值相同的成员放到同一数组
+  const container = [];
+  for (let index = min; index <= max; index += 1) {
+    container.push([]);
+  }
+  array.forEach((item) => {
+    const index = item - min;
     container[index].push(item);
   });
   // 清空原数组

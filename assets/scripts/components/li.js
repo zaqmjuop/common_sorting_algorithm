@@ -67,8 +67,10 @@ const param = {
       });
       /** 接受消息改变位置 */
     },
-    fall() {
-      Dom.of(this.template).css('bottom', '-300px');
+    fall(px) {
+      let bottom = -300;
+      if (Number.isSafeInteger(px)) { bottom = px; }
+      Dom.of(this.template).css('bottom', `${bottom}px`);
     },
     unfall() {
       Dom.of(this.template).css('bottom', '0');
