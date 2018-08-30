@@ -1,6 +1,8 @@
 import li from './li';
 import Dom from '../dom';
 import { shellSort } from '../sort/index';
+import utils from '../utils';
+import Component from './component';
 
 function* colorNameGenerator() {
   const color = [80, 80, 80];
@@ -133,16 +135,78 @@ const param = {
             let insertion = Promise.resolve();
             const stage = [];
             const team = this.data.containers[0];
-            team.forEach(() => {
-              insertion = insertion
-                .then(() => {
-                  /** @todo */
-                })
-            });
+            // team.forEach((item) => {
+            //   insertion = insertion
+            //     .then(() => {
+            //       for (let i = 0; i < stage.length; i += 1) {
+            //         if (stage[i].data.value > item.data.value) {
+            //           stage.splice(i, 0, item);
+            //           break;
+            //         }
+            //       }
+            //       if (!stage.includes(item)) {
+            //         stage.push(item);
+            //       }
+            //       const index = stage.indexOf(item);
+            //       item.dispatchEvent('send', { order: index + 1 });
+            //       item.methods.fall(-300);
+            //       return utils.wait(1111);
+            //     });
+            // });
+            return this.methods.insertionStage(team);
           });
         console.log(this.data.array);
         return promise;
       });
+    },
+    insertionStage(array) {
+      // 将包含li的数组在下方舞台插入排序并替换回数组
+      if (!(array instanceof Array)) { return false; }
+      if (array.some(item => !(item instanceof Component))) { return false; }
+      let promise = Promise.resolve(utils.wait(111));
+      const stage = [];
+      array.forEach((item) => {
+        promise = promise
+          .then(() => {
+            // 找到应该插入舞台位置
+            for (let i = 0; i < stage.length; i += 1) {
+              if (stage[i].data.value > item.data.value) {
+                stage.splice(i, 0, item);
+                break;
+              }
+            }
+            if (!stage.includes(item)) {
+              stage.push(item);
+            }
+          }).then(() => {
+            // 舞台其他先让位
+            stage.forEach((inStage, index) => {
+              if (inStage !== item) {
+                inStage.dispatchEvent('send', { order: index + 1 });
+                item.methods.fall(-300);
+              }
+            });
+            return utils.wait(1111);
+          }).then(() => {
+            // 将Item插入舞台
+            const index = stage.indexOf(item);
+            item.dispatchEvent('send', { order: index + 1 });
+            item.methods.fall(-300);
+            return utils.wait(1111);
+          }).then(() => {
+            // 替换回原数组
+            array.splice(0, array.length, ...stage);
+            let goBack = Promise.resolve();
+            array.forEach((item) => {
+              goBack = goBack.then(() => {
+                // 原来的order ??
+                item.methods.unfall();
+              });
+            });
+          })
+      });
+
+      return promise;
     },
     getArray() {
       const array = this.data.items.map(item => item.data.value);
