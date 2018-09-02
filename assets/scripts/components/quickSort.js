@@ -134,17 +134,24 @@ const param = {
     },
     quickSortOnce() {
       // 分组
-      let rightIndex = this.data.items.length - 1; // 设置右端点
-      let leftIndex = 0; // 设置左端点
-      const reference = this.data.items[leftIndex]; // 取左端点值为参照物
-      for (let index = leftIndex; index <= rightIndex; index += 1) {
+      /** @todo */
+      const startIndex = 0; // 设置左端点
+      const endIndex = this.data.items.length - 1; // 设置右端点
+      let leftIndex = 0;
+      let rightIndex = this.data.items.length - 1;
+      const reference = this.data.items[startIndex]; // 取左端点值为参照物
+      for (let index = startIndex; index <= endIndex; index += 1) {
         const item = this.data.items[index];
         item.methods.select();
       }
+      for (let index = leftIndex; leftIndex < array.length; index++) {
+        const element = array[index];
+        
+      }
       // 从右侧收紧
       // 从右侧找到第一个比左端点小的赋值
-      let focus = rightIndex;
-      for (; focus >= leftIndex; focus -= 1) {
+      let focus = endIndex;
+      for (; focus >= startIndex; focus -= 1) {
         if (this.data.items[focus].data.value < reference.data.value) {
           break;
         }
@@ -152,7 +159,7 @@ const param = {
       // focus是右侧第一个较小数或为leftIndex
       // 动画
       let promise = Promise.resolve();
-      for (let index = rightIndex; index >= focus; index -= 1) {
+      for (let index = endIndex; index >= focus; index -= 1) {
         const item = this.data.items[index];
         promise = promise
           .then(() => {
@@ -161,9 +168,9 @@ const param = {
             return utils.wait(1000);
           }).then(() => {
             let async;
-            if (index === focus && focus !== leftIndex) {
+            if (index === focus && focus !== startIndex) {
               // 怎么收紧rightIndex
-              async = this.methods.exchange(leftIndex, index);
+              async = this.methods.exchange(startIndex, index);
             } else {
               item.methods.unselect();
               async = utils.wait(1000);
@@ -171,7 +178,7 @@ const param = {
             return async.then(() => console.log(this.data.items.map(item1 => item1.data.order)));
           });
       }
-      // 从左向右收紧，右侧端点是focus
+      // 从左向右收紧，右侧端点是focus 只能是先算出结果在写动画
       return promise;
     },
     getArray() {
