@@ -110,6 +110,8 @@ const param = {
             console.log('替换', item1.data.value, item2.data.value);
             item1.dispatchEvent('send', { order: order2 });
             item2.dispatchEvent('send', { order: order1 });
+            this.data.items.splice(index1, 1, item2);
+            this.data.items.splice(index2, 1, item1);
           });
       }
       return this.data.exchangePromise;
@@ -137,15 +139,20 @@ const param = {
       const reference = this.data.items[leftIndex]; // 取左端点值为参照物
       for (let index = leftIndex; index <= rightIndex; index += 1) {
         const item = this.data.items[index];
-        if (index === leftIndex || index === rightIndex) {
-          Dom.of(item.template).addClass('yellow');
-        } else {
-          item.methods.select();
-        }
+        item.methods.select();
       }
       // 从右侧收紧
+      // 从右侧找到第一个比左端点小的赋值
+      let focus = rightIndex;
+      for (; focus >= leftIndex; focus -= 1) {
+        if (this.data.items[focus].data.value < reference.data.value) {
+          break;
+        }
+      }
+      // focus是右侧第一个较小数或为leftIndex
+      // 动画
       let promise = Promise.resolve();
-      for (let index = rightIndex; index >= leftIndex; index -= 1) {
+      for (let index = rightIndex; index >= focus; index -= 1) {
         const item = this.data.items[index];
         promise = promise
           .then(() => {
@@ -153,12 +160,18 @@ const param = {
             item.methods.highLight(1000);
             return utils.wait(1000);
           }).then(() => {
-            /** @todo */
-            if (item.data.value < reference.data.value) {
-              return this.methods.exchange(leftIndex, rightIndex);
+            let async;
+            if (index === focus && focus !== leftIndex) {
+              // 怎么收紧rightIndex
+              async = this.methods.exchange(leftIndex, index);
+            } else {
+              item.methods.unselect();
+              async = utils.wait(1000);
             }
-          })
+            return async.then(() => console.log(this.data.items.map(item1 => item1.data.order)));
+          });
       }
+      // 从左向右收紧，右侧端点是focus
       return promise;
     },
     getArray() {
