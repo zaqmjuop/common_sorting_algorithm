@@ -35,6 +35,9 @@ const param = {
     return {
       array: [],
       items: [],
+      animation: Promise.resolve(),
+      increment: 0,
+      done: false,
     };
   },
   selectors: {
@@ -70,31 +73,6 @@ const param = {
         item.dispatchEvent('send', { value: this.data.array[index] });
       });
     },
-    /** 操作Li位置的方法,2个li交换位置
-   * @param {number} index1 - 一个数字，对应this.data.items[index1]
-   * @param {number} index2 - 一个数字，对应this.data.items[index2]
-   */
-    exchange(index1, index2) {
-      if (!Number.isSafeInteger(index1) || index1 < 0 || index1 > 19) {
-        throw new Error(`index1不能是${index1}`);
-      }
-      if (!Number.isSafeInteger(index2) || index2 < 0 || index2 > 19) {
-        throw new Error(`index2不能是${index2}`);
-      }
-      if (index1 !== index2) {
-        this.data.exchangePromise = this.data.exchangePromise
-          .then(() => {
-            const item1 = this.data.items[index1];
-            const item2 = this.data.items[index2];
-            const order1 = item1.data.order;
-            const order2 = item2.data.order;
-            console.log('替换', item1.data.value, item2.data.value);
-            item1.dispatchEvent('send', { order: order2 });
-            item2.dispatchEvent('send', { order: order1 });
-          });
-      }
-      return this.data.exchangePromise;
-    },
     bindEvents() {
       // 随机召唤数组
       Dom.of(this.elements.getRandom).on('click', () => {
@@ -107,68 +85,80 @@ const param = {
       // 排序
       Dom.of(this.elements.sort).on('click', () => {
         // 分组 排序 替换原值
-        let promise = Promise.resolve()
-          .then(() => {
-            // 设置增量
-            this.data.increment = Math.trunc(this.data.array.length / 2);
-            // 设置容器
-            this.data.containers = [];
-            for (let index = 0; index < this.data.increment; index += 1) {
-              this.data.containers.push([]);
-            }
-            // 分组
-            for (let index = 0; index < this.data.containers.length; index += 1) {
-              let effectIndex = index;
-              while (effectIndex < this.data.items.length) {
-                const item = this.data.items[effectIndex];
-                this.data.containers[index].push(item);
-                effectIndex += this.data.increment;
-              }
-            }
-            console.log(this.data.containers)
-          }).then(() => {
-            // 高亮分组
-            this.data.containers.forEach((team) => {
-              const color = takeColorName();
-              team.forEach((item) => {
-                Dom.of(item.template).css('backgroundColor', color);
-              });
-            });
-          }).then(() => {
-            // 插入排序
-            let insertion = Promise.resolve();
-            const stage = [];
-            const team = this.data.containers[0];
-            // team.forEach((item) => {
-            //   insertion = insertion
-            //     .then(() => {
-            //       for (let i = 0; i < stage.length; i += 1) {
-            //         if (stage[i].data.value > item.data.value) {
-            //           stage.splice(i, 0, item);
-            //           break;
-            //         }
-            //       }
-            //       if (!stage.includes(item)) {
-            //         stage.push(item);
-            //       }
-            //       const index = stage.indexOf(item);
-            //       item.dispatchEvent('send', { order: index + 1 });
-            //       item.methods.fall(-300);
-            //       return utils.wait(1111);
-            //     });
-            // });
-            return this.methods.insertionStage(team);
-          });
-        console.log(this.data.array);
+        const promise = this.methods.shellSortAnimation();
         return promise;
       });
+    },
+    shellSortAnimation() {
+      // 归并排序运行到增量小于1
+      let promise = this.data.animation;
+      promise = promise.then(() => {
+        let result;
+        if (this.data.done) {
+          result = false;
+        } else {
+          result = Promise.resolve(this.methods.shellSortOnce()).then(() => this.methods.shellSortAnimation())
+        }
+        return result;
+      });
+      return promise;
+    },
+    shellSortOnce() {
+      const promise = Promise.resolve()
+        .then(() => {
+          // 设置增量 promise 怎么递归
+          const increment = this.data.increment || this.data.array.length;
+          this.data.increment = Math.trunc(increment / 2);
+          // 设置容器
+          this.data.containers = [];
+          for (let index = 0; index < this.data.increment; index += 1) {
+            this.data.containers.push([]);
+          }
+          // 分组
+          for (let index = 0; index < this.data.containers.length; index += 1) {
+            let effectIndex = index;
+            while (effectIndex < this.data.items.length) {
+              const item = this.data.items[effectIndex];
+              this.data.containers[index].push(item);
+              effectIndex += this.data.increment;
+            }
+          }
+        })
+        .then(() => {
+          // 高亮分组
+          this.data.containers.forEach((team) => {
+            const color = takeColorName();
+            team.forEach((item) => {
+              Dom.of(item.template).css('backgroundColor', color);
+            });
+          });
+        })
+        .then(() => {
+          // 插入排序
+          let insertion = Promise.resolve();
+          this.data.containers.forEach((team) => {
+            insertion = insertion
+              .then(() => this.methods.insertionStage(team))
+              .then(() => utils.wait(222));
+          });
+          return insertion;
+        })
+        .then(() => {
+          // 等待一段时间
+          if (this.data.increment <= 1) {
+            this.data.done = true;
+          }
+          return utils.wait(222);
+        });
+      return promise;
     },
     insertionStage(array) {
       // 将包含li的数组在下方舞台插入排序并替换回数组
       if (!(array instanceof Array)) { return false; }
       if (array.some(item => !(item instanceof Component))) { return false; }
-      let promise = Promise.resolve(utils.wait(111));
       const stage = [];
+      const orders = array.map(item => item.data.order); // 因为第二次order未排序
+      let promise = Promise.resolve();
       array.forEach((item) => {
         promise = promise
           .then(() => {
@@ -190,26 +180,32 @@ const param = {
                 item.methods.fall(-300);
               }
             });
-            return utils.wait(1111);
+            return utils.wait(222);
           }).then(() => {
             // 将Item插入舞台
             const index = stage.indexOf(item);
-            item.dispatchEvent('send', { order: index + 1 });
             item.methods.fall(-300);
-            return utils.wait(1111);
-          }).then(() => {
-            // 替换回原数组
-            array.splice(0, array.length, ...stage);
-            let goBack = Promise.resolve();
-            array.forEach((item) => {
-              goBack = goBack.then(() => {
-                // 原来的order ??
-                item.methods.unfall();
-              });
-            });
+            item.dispatchEvent('send', { order: index + 1 });
+            return utils.wait(222);
           });
       });
-
+      // 替换回原数组
+      promise = promise
+        .then(() => {
+          array.splice(0, array.length, ...stage);
+        }).then(() => {
+          let goback = Promise.resolve();
+          array.forEach((item, index) => {
+            goback = goback.then(() => {
+              const afterIndex = orders[index] - 1;
+              this.data.items.splice(afterIndex, 1, item);
+              item.dispatchEvent('send', { order: orders[index] });
+              item.methods.unfall();
+              return utils.wait(222);
+            });
+          });
+          return goback;
+        });
       return promise;
     },
     getArray() {
@@ -274,7 +270,6 @@ const param = {
     return this.methods.init()
       .then(() => this.methods.bindEvents());
   },
-  implanted() { console.log('implanted shellSort'); },
 };
 
 export default param;
