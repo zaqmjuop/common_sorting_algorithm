@@ -1,21 +1,25 @@
 import li from './li';
 import Dom from '../dom';
-import { shellSort } from '../sort/index';
 import utils from '../utils';
 import Component from './component';
 
 function* colorNameGenerator() {
-  const color = [80, 80, 80];
-  let time = 0;
+  let time = -1;
   while (1) {
     time += 1;
+    if (time > 30) { time = 0; }
+    let color;
     const index = time % 3;
-    let value = color[index] + ((time % 16) * 16);
-    if (value > 255) { value -= 255; }
-    color.splice(index, 1, value);
-    const color16 = color.map(item => (item).toString(16));
+    const value = 240 - Math.trunc(time / 6) * 32;
+    if (Math.trunc(time / 3) % 2 === 0) {
+      color = [0, 0, 0];
+      color.splice(index, 1, value);
+    } else {
+      color = [value, value, value];
+      color.splice(index, 1, 0);
+    }
+    const color16 = color.map(item => (item).toString(16).padEnd(2, item));
     const name = `#${color16.join('')}`;
-    console.log(time)
     yield name;
   }
 }
@@ -203,7 +207,7 @@ const param = {
                 item.methods.unfall();
               });
             });
-          })
+          });
       });
 
       return promise;
