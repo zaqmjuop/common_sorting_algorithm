@@ -1,5 +1,6 @@
 import li from './li';
 import Dom from '../dom';
+import utils from '../utils';
 
 function quickSort(array, startIndex = 0, endIndex = array.length - 1) {
   const isValidArgs = array instanceof Array
@@ -52,6 +53,7 @@ const param = {
     return {
       array: [],
       items: [],
+      exchangePromise: Promise.resolve(),
     };
   },
   selectors: {
@@ -122,10 +124,42 @@ const param = {
         return this.methods.sendArray();
       });
       Dom.of(this.elements.sort).on('click', () => {
+        // 分组 排序 替换原值
         console.log('点击了排序');
-        quickSort(this.data.array);
+        this.methods.quickSortOnce();
         console.log(this.data.array);
       });
+    },
+    quickSortOnce() {
+      // 分组
+      let rightIndex = this.data.items.length - 1; // 设置右端点
+      let leftIndex = 0; // 设置左端点
+      const reference = this.data.items[leftIndex]; // 取左端点值为参照物
+      for (let index = leftIndex; index <= rightIndex; index += 1) {
+        const item = this.data.items[index];
+        if (index === leftIndex || index === rightIndex) {
+          Dom.of(item.template).addClass('yellow');
+        } else {
+          item.methods.select();
+        }
+      }
+      // 从右侧收紧
+      let promise = Promise.resolve();
+      for (let index = rightIndex; index >= leftIndex; index -= 1) {
+        const item = this.data.items[index];
+        promise = promise
+          .then(() => {
+            // 高亮一秒
+            item.methods.highLight(1000);
+            return utils.wait(1000);
+          }).then(() => {
+            /** @todo */
+            if (item.data.value < reference.data.value) {
+              return this.methods.exchange(leftIndex, rightIndex);
+            }
+          })
+      }
+      return promise;
     },
     getArray() {
       const array = this.data.items.map(item => item.data.value);

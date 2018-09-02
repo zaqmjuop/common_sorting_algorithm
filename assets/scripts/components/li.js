@@ -85,7 +85,7 @@ const param = {
      * @param {number} mesc - 高亮时间
      * @param {string} backColor - background-color参数
      */
-    highLight(mesc, backColor) {
+    highLight(mesc = 1000, backColor) {
       Dom.of(this.template).addClass('high-light');
       if (arguments.length > 0 && Number.isSafeInteger(mesc) && mesc >= 0) {
         setTimeout(() => Dom.of(this.template).removeClass('high-light'), mesc);
