@@ -128,57 +128,146 @@ const param = {
       Dom.of(this.elements.sort).on('click', () => {
         // 分组 排序 替换原值
         console.log('点击了排序');
-        this.methods.quickSortOnce();
+        this.methods.quickSortRecursion();
         console.log(this.data.array);
       });
     },
-    quickSortOnce() {
+    quickSortOnce(startIndex = 0, endIndex = this.data.items.length - 1) {
       // 分组
       /** @todo */
-      const startIndex = 0; // 设置左端点
-      const endIndex = this.data.items.length - 1; // 设置右端点
-      let leftIndex = 0;
-      let rightIndex = this.data.items.length - 1;
-      const reference = this.data.items[startIndex]; // 取左端点值为参照物
+      let leftIndex = startIndex; // 变化后左端点
+      let rightIndex = endIndex; // 变化后右端点
+      const reference = this.data.items[leftIndex]; // 取左端点值为参照物
+      // 显示范围
       for (let index = startIndex; index <= endIndex; index += 1) {
         const item = this.data.items[index];
-        item.methods.select();
+        if (index === leftIndex) {
+          Dom.of(item.template).addClass('yellow');
+        } else {
+          item.methods.select();
+        }
       }
-      for (let index = leftIndex; leftIndex < array.length; index++) {
-        const element = array[index];
-        
+      // 从右侧收紧 找到第一个较小值停止
+      for (; leftIndex < rightIndex; rightIndex -= 1) {
+        if (this.data.items[rightIndex].data.value < reference.data.value) {
+          break; // 没有换值 从哪里开始 rightIndex会在哪 从end到left
+        }
       }
-      // 从右侧收紧
-      // 从右侧找到第一个比左端点小的赋值
-      let focus = endIndex;
-      for (; focus >= startIndex; focus -= 1) {
-        if (this.data.items[focus].data.value < reference.data.value) {
+      // 从左侧收紧 找到第一个较大值停止
+      for (; leftIndex < rightIndex; leftIndex += 1) {
+        if (this.data.items[leftIndex].data.value > reference.data.value) {
           break;
         }
       }
-      // focus是右侧第一个较小数或为leftIndex
-      // 动画
+      // 右向左动画
       let promise = Promise.resolve();
-      for (let index = endIndex; index >= focus; index -= 1) {
+      for (let index = endIndex; index >= rightIndex; index -= 1) {
         const item = this.data.items[index];
         promise = promise
           .then(() => {
             // 高亮一秒
-            item.methods.highLight(1000);
-            return utils.wait(1000);
+            item.methods.highLight(222);
+            return utils.wait(222);
           }).then(() => {
             let async;
-            if (index === focus && focus !== startIndex) {
+            if (index === rightIndex && rightIndex !== startIndex) {
               // 怎么收紧rightIndex
-              async = this.methods.exchange(startIndex, index);
+              async = this.methods.exchange(startIndex, index)
+                .then(() => {
+                  item.methods.unselect();
+                  utils.wait(222);
+                });
             } else {
               item.methods.unselect();
-              async = utils.wait(1000);
+              async = utils.wait(222);
             }
             return async.then(() => console.log(this.data.items.map(item1 => item1.data.order)));
           });
       }
+
+      // 左向右动画
+      for (let index = startIndex + 1; index <= leftIndex; index += 1) {
+        const item = this.data.items[index];
+        promise = promise
+          .then(() => {
+            // 高亮一秒
+            if (index === leftIndex && item.data.value <= reference.data.value) { return false; }
+            console.log(index, item.data.value)
+            item.methods.highLight(222);
+            return utils.wait(222);
+          }).then(() => {
+            let async;
+            if (index === leftIndex && leftIndex !== rightIndex) {
+              async = this.methods.exchange(rightIndex, index)
+                .then(() => {
+                  item.methods.unselect();
+                  utils.wait(222);
+                });
+            } else {
+              item.methods.unselect();
+              async = utils.wait(222);
+            }
+            return async;
+          });
+      }
       // 从左向右收紧，右侧端点是focus 只能是先算出结果在写动画
+      promise = promise
+        .then(() => {
+          this.data.startIndex = leftIndex;
+          this.data.endIndex = Math.max(rightIndex - 1, leftIndex);
+        });
+      return promise.then(() => console.log('结算', this.data.endIndex, this.data.startIndex));
+    },
+    quickSortLoop() {
+      let promise = Promise.resolve();
+      promise = promise
+        .then(() => {
+          let result;
+          console.log('开始', this.data.endIndex, this.data.startIndex)
+          if (this.data.endIndex && this.data.startIndex === this.data.endIndex) {
+            result = false;
+          } else if (this.data.endIndex) {
+            console.log('here')
+            result = this.methods.quickSortOnce(this.data.startIndex, this.data.endIndex);
+          } else {
+            result = this.methods.quickSortOnce();
+          }
+          return result;
+        });
+      promise = promise
+        .then(() => {
+          // 循环 条件
+          let loop;
+          if (this.data.endIndex && this.data.endIndex !== this.data.startIndex) {
+            console.log('循环')
+            loop = Promise.resolve(this.methods.quickSortLoop());
+          } else {
+            const item = this.data.items[this.data.startIndex];
+            Dom.of(item.template).removeClass('yellow');
+          }
+          return loop;
+        });
+      return promise;
+    },
+    quickSortRecursion() {
+      // 递归
+      let promise = this.methods.quickSortLoop();
+      promise = promise
+        .then(() => {
+          // 保存首尾
+          const end = this.data.endIndex;
+          const start = this.data.startIndex;
+          console.log('一次循环完成', this.data)
+          const flag = start;
+          let recursion;
+          if (flag - 1 > 0) {
+            console.log('left')
+            this.data.startIndex = 0;
+            this.data.endIndex = flag - 1;
+            recursion = this.methods.quickSortRecursion();
+          }
+          return recursion;
+        });
       return promise;
     },
     getArray() {

@@ -24,7 +24,7 @@ const quickSort = (array, startIndex = 0, endIndex = array.length - 1) => {
       if (array[leftIndex] > reference) {
         // 如果从左侧找到比参照物大的值，把左端点值赋值到右端点，那么左端点就变成了多余值位置
         array.splice(rightIndex, 1, array[leftIndex]);
-        rightIndex -= 1; // 由于右端点已经被赋值，于是将左端点收紧一位,然后进入下一次循环
+        rightIndex -= 1; // 由于右端点已经被赋值，于是将右端点收紧一位,然后进入下一次循环
         break;
       }
       // 如果从左侧没有找到比参照物大的值，左端点会收紧到与右端点重合
