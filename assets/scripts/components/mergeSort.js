@@ -109,25 +109,16 @@ const param = {
       Dom.of(this.elements.sort).on('click', () => {
         // 分组 排序 归并
         console.log('点击了排序');
-        // mergeSort(this.data.array);
-        let promise = Promise.resolve();
-        promise = promise
-          .then(() => {
-            this.data.containers = this.data.items.slice(0);
-            this.methods.shredding(this.data.containers);
-            this.methods.dyeing(this.data.containers);
-          }).then(() => {
-            // 插入排序
-            return this.methods.recursiveMergeSort(this.data.containers);
-          })
-        console.log(this.data.array);
+        // 复制的数组能返回正确结果 原数组不能，不知道为什么
+        this.data.containers = this.data.items.slice(0);
+        const promise = Promise.resolve()
+          .then(() => this.methods.mergeSort(this.data.containers));
         return promise;
       });
     },
     insertionStage(items) {
       if (!(items instanceof Array) || !items.every(item => Component.isComponent(item))) { return false; }
       // 插入排序并替换回原值
-      console.log(items);
       const orders = items.map(item => item.data.order);
       const stage = [];
       let promise = Promise.resolve();
@@ -180,39 +171,70 @@ const param = {
         });
       return promise;
     },
-    mergeSort(array) {
-      this.methods.shredding(array); // 递归分组
-      this.methods.recursiveMergeSort(array); // 递归合并并排序
-      return array;
+    mergeSort(array = this.data.items) {
+      if (!(array instanceof Array)) { return false; }
+      if (array.some(item => !Component.isComponent(item))) { return false; }
+      const promise = Promise.resolve()
+        .then(() => {
+          // 分组 高亮
+          this.methods.shredding(array);
+          this.methods.dyeing(array);
+        })
+        // 递归排序
+        .then(() => this.methods.recursiveMergeSort(array))
+        // 补充归并到最上层少一次排序
+        .then(() => this.methods.insertionStage(array));
+      return promise;
+    },
+    mergeSecondLowest(array) {
+      // 合并倒数第二层
+      if (!(array instanceof Array)) { return array; }
+      if (!(array[0] instanceof Array)) { return array; }
+      if (array[0].some(item => !Component.isComponent(item))) { return false; }
+      let promise = Promise.resolve();
+      const merge = [];
+      array.forEach((team) => {
+        if (team.length > 1) {
+          promise = promise.then(() => this.methods.insertionStage(team));
+        }
+        promise = promise.then(() => {
+          merge.push(...team);
+        });
+      });
+      promise = promise.then(() => {
+        array.splice(0, array.length, ...merge);
+        this.methods.dyeing(array);
+        return array;
+      });
+      return promise;
     },
     /** 将分好组的数组合并并排序 */
     recursiveMergeSort(array) {
-      if (!(array instanceof Array) || array.length < 2) { return array; }
-      const isGrassRoots = array.every(item => !(item instanceof Array));
+      if (!(array instanceof Array)) { return array; }
+      if (array.length < 2) { return array; }
+      const isSecondLowestArray = (ary) => {
+        const result = ary instanceof Array
+          && ary[0] instanceof Array
+          && ary[0].every(item => item instanceof Component);
+        return result;
+      };
+
       let promise = Promise.resolve();
-      if (!isGrassRoots) {
-        // 遍历替换原值
-        let merge = [];
-        array.forEach((item) => {
-          promise = promise
-            .then(() => {
-              return this.methods.recursiveMergeSort(item); // 递归到底层
-            }).then(() => {
-              merge = merge.concat(item); // 从底层开始合并
-              return merge;
-            });
-        });
-        promise = promise
-          .then(() => {
-            array.splice(0, array.length, ...merge); // 将元素组改为合并，降维
-          });
-        // this.methods.insertionSort(array); // 将合并排序
+
+      if (isSecondLowestArray(array)) {
+        promise = promise.then(() => this.methods.mergeSecondLowest(array));
       } else {
-        // 最底层初次排序 2个值一组的部分
-        promise = promise
-          .then(() => this.methods.insertionStage(array));
-        // this.methods.insertionSort(array);
+        array.forEach((team) => {
+          promise = promise.then(() => this.methods.recursiveMergeSort(team));
+        })
+        promise = promise.then(() => {
+          if (isSecondLowestArray(array)) {
+            return this.methods.recursiveMergeSort(array);
+          }
+        })
+        // 归并
       }
+
       return promise;
     },
     /** 把一个数组切碎成多元数组 */
