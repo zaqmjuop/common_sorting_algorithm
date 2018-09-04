@@ -113,12 +113,12 @@ const param = {
         let promise = Promise.resolve();
         promise = promise
           .then(() => {
-            // this.data.containers = this.data.items.slice(0);
-            // this.methods.shredding(this.data.containers);
-            // this.methods.dyeing(this.data.containers);
+            this.data.containers = this.data.items.slice(0);
+            this.methods.shredding(this.data.containers);
+            this.methods.dyeing(this.data.containers);
           }).then(() => {
             // 插入排序
-            return this.methods.insertionStage(this.data.items);
+            return this.methods.recursiveMergeSort(this.data.containers);
           })
         console.log(this.data.array);
         return promise;
@@ -189,44 +189,31 @@ const param = {
     recursiveMergeSort(array) {
       if (!(array instanceof Array) || array.length < 2) { return array; }
       const isGrassRoots = array.every(item => !(item instanceof Array));
-      if (isGrassRoots) {
-        // 最底层初次排序 2个值一组的部分
-        this.methods.insertionSort(array);
-      } else {
+      let promise = Promise.resolve();
+      if (!isGrassRoots) {
         // 遍历替换原值
         let merge = [];
         array.forEach((item) => {
-          this.methods.recursiveMergeSort(item); // 递归到底层
-          merge = merge.concat(item); // 从底层开始合并
+          promise = promise
+            .then(() => {
+              return this.methods.recursiveMergeSort(item); // 递归到底层
+            }).then(() => {
+              merge = merge.concat(item); // 从底层开始合并
+              return merge;
+            });
         });
-        array.splice(0, array.length, ...merge); // 将元素组改为合并，降维
-        this.methods.insertionSort(array); // 将合并排序
+        promise = promise
+          .then(() => {
+            array.splice(0, array.length, ...merge); // 将元素组改为合并，降维
+          });
+        // this.methods.insertionSort(array); // 将合并排序
+      } else {
+        // 最底层初次排序 2个值一组的部分
+        promise = promise
+          .then(() => this.methods.insertionStage(array));
+        // this.methods.insertionSort(array);
       }
-      return array;
-    },
-    /** 插入排序 改变原数组 */
-    insertionSort(array) {
-      const container = []; // 准备一个空数组，向空数组内插入
-      // 一次插入动作
-      const onceInsert = (member) => {
-        let isInserted = false;
-        for (let i = 0; i < container.length; i += 1) {
-          const item = container[i];
-          // 插入条件
-          if (item > member) {
-            container.splice(i, 0, member); // 插入
-            isInserted = true;
-            break;
-          }
-        }
-        // 若container中没有比member更大的值时
-        if (!isInserted) { container.push(member); }
-        return container;
-      };
-      // 将原数组中的值有序的插入到container
-      array.forEach(item => onceInsert(item));
-      // 改变原数组
-      array.splice(0, array.length, ...container);
+      return promise;
     },
     /** 把一个数组切碎成多元数组 */
     shredding(ary) {
