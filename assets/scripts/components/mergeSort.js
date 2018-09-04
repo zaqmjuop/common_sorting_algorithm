@@ -1,6 +1,32 @@
 import li from './li';
 import Dom from '../dom';
 import { mergeSort } from '../sort/index';
+import Component from './component';
+
+function* colorNameGenerator() {
+  let time = -1;
+  while (1) {
+    time += 1;
+    if (time > 30) { time = 0; }
+    let color;
+    const index = time % 3;
+    const value = 240 - Math.trunc(time / 6) * 32;
+    if (Math.trunc(time / 3) % 2 === 0) {
+      color = [0, 0, 0];
+      color.splice(index, 1, value);
+    } else {
+      color = [value, value, value];
+      color.splice(index, 1, 0);
+    }
+    const color16 = color.map(item => (item).toString(16).padEnd(2, item));
+    const name = `#${color16.join('')}`;
+    yield name;
+  }
+}
+const colorNameStore = colorNameGenerator();
+// 获取一个颜色值
+const takeColorName = () => colorNameStore.next().value;
+
 
 const param = {
   name: 'mergeSort',
@@ -80,8 +106,11 @@ const param = {
         return this.methods.sendArray();
       });
       Dom.of(this.elements.sort).on('click', () => {
+        // 分组 排序 归并
         console.log('点击了排序');
-        mergeSort(this.data.array);
+        // mergeSort(this.data.array);
+        const cell = this.methods.shredding(this.data.items);
+        this.methods.dyeing();
         console.log(this.data.array);
       });
     },
@@ -163,6 +192,19 @@ const param = {
       shredding(ary);
       return ary;
     },
+    dyeing(items = this.data.items) {
+      const isLowest = items.every(item => item instanceof Component);
+      if (isLowest) {
+        const color = takeColorName();
+        items.forEach((item) => {
+          Dom.of(item.template).css('backgroundColor', color);
+        });
+      } else {
+        items.forEach((team) => {
+          this.methods.dyeing(team);
+        });
+      }
+    },
     getArray() {
       const array = this.data.items.map(item => item.data.value);
       this.data.array = array;
@@ -173,7 +215,6 @@ const param = {
     return this.methods.init()
       .then(() => this.methods.bindEvents());
   },
-  implanted() { console.log('implanted mergeSort'); },
 };
 
 export default param;

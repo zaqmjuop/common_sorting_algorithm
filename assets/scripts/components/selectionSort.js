@@ -157,7 +157,6 @@ const param = {
     return this.methods.init()
       .then(() => this.methods.bindEvents());
   },
-  implanted() { console.log('implanted selectionSort'); },
 };
 
 export default param;
