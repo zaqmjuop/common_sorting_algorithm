@@ -128,7 +128,8 @@ const param = {
       Dom.of(this.elements.sort).on('click', () => {
         // 分组 排序 替换原值
         console.log('点击了排序');
-        this.methods.quickSortRecursion();
+        this.methods.quickSortRecursion()
+          .then(() => console.log('done!'));
         console.log(this.data.array);
       });
     },
@@ -192,7 +193,6 @@ const param = {
           .then(() => {
             // 高亮一秒
             if (index === leftIndex && item.data.value <= reference.data.value) { return false; }
-            console.log(index, item.data.value)
             item.methods.highLight(222);
             return utils.wait(222);
           }).then(() => {
@@ -216,18 +216,16 @@ const param = {
           this.data.startIndex = leftIndex;
           this.data.endIndex = Math.max(rightIndex - 1, leftIndex);
         });
-      return promise.then(() => console.log('结算', this.data.endIndex, this.data.startIndex));
+      return promise;
     },
     quickSortLoop() {
       let promise = Promise.resolve();
       promise = promise
         .then(() => {
           let result;
-          console.log('开始', this.data.endIndex, this.data.startIndex)
           if (this.data.endIndex && this.data.startIndex === this.data.endIndex) {
             result = false;
           } else if (this.data.endIndex) {
-            console.log('here')
             result = this.methods.quickSortOnce(this.data.startIndex, this.data.endIndex);
           } else {
             result = this.methods.quickSortOnce();
@@ -239,7 +237,6 @@ const param = {
           // 循环 条件
           let loop;
           if (this.data.endIndex && this.data.endIndex !== this.data.startIndex) {
-            console.log('循环')
             loop = Promise.resolve(this.methods.quickSortLoop());
           } else {
             const item = this.data.items[this.data.startIndex];
@@ -249,25 +246,37 @@ const param = {
         });
       return promise;
     },
-    quickSortRecursion() {
+    quickSortRecursion(start = 0, end = this.data.items.length - 1) {
+      if (start < end) {
+        console.log('Recursion', start, end);
+      } else {
+        return false;
+      }
+      // 不应该并联 使其串联就是最终结果
       // 递归
-      let promise = this.methods.quickSortLoop();
+      let flag;
+      let promise = Promise.resolve();
       promise = promise
         .then(() => {
-          // 保存首尾
-          const end = this.data.endIndex;
-          const start = this.data.startIndex;
-          console.log('一次循环完成', this.data)
-          const flag = start;
-          let recursion;
-          if (flag - 1 > 0) {
-            console.log('left')
-            this.data.startIndex = 0;
-            this.data.endIndex = flag - 1;
-            recursion = this.methods.quickSortRecursion();
-          }
-          return recursion;
-        });
+          this.data.startIndex = start;
+          this.data.endIndex = end;
+          let result = this.methods.quickSortLoop()
+            .then(() => {
+              flag = this.data.startIndex;
+            });
+          return result;
+        })
+        .then(() => {
+          let result = Promise.resolve();
+          result = result
+            .then(() => {
+              return this.methods.quickSortRecursion(start, flag - 1);
+            })
+            .then(() => {
+              return this.methods.quickSortRecursion(flag + 1, end);
+            })
+          return result;
+        })
       return promise;
     },
     getArray() {
@@ -280,7 +289,6 @@ const param = {
     return this.methods.init()
       .then(() => this.methods.bindEvents());
   },
-  implanted() { console.log('implanted quickSort'); },
 };
 
 export default param;
