@@ -2,6 +2,7 @@ import li from './li';
 import Dom from '../dom';
 import { mergeSort } from '../sort/index';
 import Component from './component';
+import utils from '../utils';
 
 function* colorNameGenerator() {
   let time = -1;
@@ -109,10 +110,75 @@ const param = {
         // 分组 排序 归并
         console.log('点击了排序');
         // mergeSort(this.data.array);
-        const cell = this.methods.shredding(this.data.items);
-        this.methods.dyeing();
+        let promise = Promise.resolve();
+        promise = promise
+          .then(() => {
+            // this.data.containers = this.data.items.slice(0);
+            // this.methods.shredding(this.data.containers);
+            // this.methods.dyeing(this.data.containers);
+          }).then(() => {
+            // 插入排序
+            return this.methods.insertionStage(this.data.items);
+          })
         console.log(this.data.array);
+        return promise;
       });
+    },
+    insertionStage(items) {
+      if (!(items instanceof Array) || !items.every(item => Component.isComponent(item))) { return false; }
+      // 插入排序并替换回原值
+      console.log(items);
+      const orders = items.map(item => item.data.order);
+      const stage = [];
+      let promise = Promise.resolve();
+      items.forEach((item) => {
+        promise = promise
+          .then(() => {
+            // 找到应该插入舞台位置
+            for (let i = 0; i < stage.length; i += 1) {
+              if (stage[i].data.value > item.data.value) {
+                stage.splice(i, 0, item);
+                break;
+              }
+            }
+            if (!stage.includes(item)) {
+              stage.push(item);
+            }
+          }).then(() => {
+            // 舞台其他先让位
+            stage.forEach((inStage, index) => {
+              if (inStage !== item) {
+                inStage.dispatchEvent('send', { order: index + 1 });
+                item.methods.fall(-300);
+              }
+            });
+            return utils.wait(222);
+          }).then(() => {
+            // 将Item插入舞台
+            const index = stage.indexOf(item);
+            item.methods.fall(-300);
+            item.dispatchEvent('send', { order: index + 1 });
+            return utils.wait(222);
+          });
+      });
+      // 替换回原数组
+      promise = promise
+        .then(() => {
+          items.splice(0, items.length, ...stage);
+        }).then(() => {
+          let goback = Promise.resolve();
+          items.forEach((item, index) => {
+            goback = goback.then(() => {
+              const afterIndex = orders[index] - 1;
+              this.data.items.splice(afterIndex, 1, item);
+              item.dispatchEvent('send', { order: orders[index] });
+              item.methods.unfall();
+              return utils.wait(222);
+            });
+          });
+          return goback;
+        });
+      return promise;
     },
     mergeSort(array) {
       this.methods.shredding(array); // 递归分组
