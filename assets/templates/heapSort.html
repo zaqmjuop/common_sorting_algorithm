@@ -3,22 +3,27 @@
 
 <head>
   <style scoped>
-    .board {
-      border: 2px solid red;
+    .heap-board {
       text-align: center;
     }
 
-    ul.list {
-      height: 100%;
-      list-style: none;
-      display: flex;
-      flex-direction: row;
-      align-items: flex-end;
-      padding: 0;
-      margin: 0;
-      min-height: 300px;
-      min-width: 800px;
-      position: relative;
+    .tree {
+      display: grid;
+      grid-template-areas: "top top" "left  right";
+      grid-template-rows: 1fr 1fr;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .tree>.top {
+      grid-area: top;
+    }
+
+    .tree>.left {
+      grid-area: left;
+    }
+
+    .tree>.right {
+      grid-area: right;
     }
   </style>
 </head>
@@ -29,9 +34,24 @@
       <button name="get-random">get-random</button>
       <button name="sort">堆排序</button>
     </div>
-    <div class="board">
-      <ul class="list">
-      </ul>
+    <div class="heap-board">
+      <div class="tree">
+        <div class="top">0</div>
+        <div class="left">
+          <div class="tree">
+            <div class="top">0</div>
+            <div class="left">left</div>
+            <div class="right">right</div>
+          </div>
+        </div>
+        <div class="right">
+          <div class="tree">
+            <div class="top">0</div>
+            <div class="left">left</div>
+            <div class="right">right</div>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 </body>

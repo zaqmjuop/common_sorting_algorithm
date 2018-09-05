@@ -1,45 +1,7 @@
-import li from './li';
+
 import Dom from '../dom';
-
-const swap = (array, i, j) => {
-  const tmp = array[i];
-  array.splice(i, 1, array[j]);
-  array.splice(j, 1, tmp);
-};
-
-const heapAdjust = (array, i, j) => {
-  let largest = i;
-  const left = 2 * i + 1;
-  const right = 2 * i + 2;
-
-  if (left < j && array[largest] < array[left]) {
-    largest = left;
-  }
-
-  if (right < j && array[largest] < array[right]) {
-    largest = right;
-  }
-
-  if (largest !== i) {
-    swap(array, i, largest);
-    heapAdjust(array, largest, j);
-  }
-};
-
-const buildMaxHeap = (array) => {
-  for (let i = Math.floor(array.length / 2) - 1; i >= 0; i -= 1) {
-    heapAdjust(array, i, array.length);
-  }
-};
-
-const heapSort = (array) => {
-  buildMaxHeap(array);
-  for (let i = array.length - 1; i > 0; i -= 1) {
-    swap(array, 0, i);
-    heapAdjust(array, 0, i);
-  }
-  return array;
-};
+import treeItem from './treeItem';
+import Component from './component';
 
 const param = {
   name: 'heapSort',
@@ -53,16 +15,36 @@ const param = {
   },
   selectors: {
     ul: 'ul',
+    heapBoard: '.heap-board',
     getRandom: '*[name=get-random]',
     sort: '*[name=sort]',
   },
   methods: {
     init() {
+      console.log(this.elements.heapBoard)
       let promise = Promise.resolve();
       for (let index = 0; index < 20; index += 1) {
-        const liParam = Object.assign({ present: { order: index + 1 } }, li);
-        promise = promise.then(() => this.appendChild(liParam, this.elements.ul, -1))
-          .then(item => this.data.items.push(item));
+        const treeItemParam = Object.assign({ present: { value: index } }, treeItem);
+        promise = promise
+          .then(() => {
+            let result;
+            if (index === 0) {
+              result = this.appendChild(treeItemParam, this.elements.heapBoard, -1)
+            } else {
+              const isLeft = (index % 2 === 1);
+              const fatherIndex = Math.ceil(index / 2) - 1;
+              const father = this.data.items[fatherIndex];
+              if (isLeft) {
+                result = father.methods.appendLeft(treeItemParam);
+              } else {
+                result = father.methods.appendRight(treeItemParam);
+              }
+            }
+            return result;
+          })
+          .then((item) => {
+            this.data.items.push(item)
+          });
       }
       return promise;
     },
@@ -78,37 +60,6 @@ const param = {
       this.data.isBubbleSortDone = 0;
       this.data.isFinished = false;
     },
-    /** 按照20个随机数改变子组件li高度 */
-    sendArray() {
-      this.data.items.forEach((item, index) => {
-        item.dispatchEvent('send', { value: this.data.array[index] });
-      });
-    },
-    /** 操作Li位置的方法,2个li交换位置
-   * @param {number} index1 - 一个数字，对应this.data.items[index1]
-   * @param {number} index2 - 一个数字，对应this.data.items[index2]
-   */
-    exchange(index1, index2) {
-      if (!Number.isSafeInteger(index1) || index1 < 0 || index1 > 19) {
-        throw new Error(`index1不能是${index1}`);
-      }
-      if (!Number.isSafeInteger(index2) || index2 < 0 || index2 > 19) {
-        throw new Error(`index2不能是${index2}`);
-      }
-      if (index1 !== index2) {
-        this.data.exchangePromise = this.data.exchangePromise
-          .then(() => {
-            const item1 = this.data.items[index1];
-            const item2 = this.data.items[index2];
-            const order1 = item1.data.order;
-            const order2 = item2.data.order;
-            console.log('替换', item1.data.value, item2.data.value);
-            item1.dispatchEvent('send', { order: order2 });
-            item2.dispatchEvent('send', { order: order1 });
-          });
-      }
-      return this.data.exchangePromise;
-    },
     bindEvents() {
       // 随机召唤数组
       Dom.of(this.elements.getRandom).on('click', () => {
@@ -116,11 +67,10 @@ const param = {
           return console.warn('正在运行中,你可以刷新页面重新开始');
         }
         this.methods.getRandom();
-        return this.methods.sendArray();
+        return this.data.array;
       });
       Dom.of(this.elements.sort).on('click', () => {
         console.log('点击了排序');
-        heapSort(this.data.array);
         console.log(this.data.array);
       });
     },
@@ -132,8 +82,15 @@ const param = {
   },
   created() {
     return this.methods.init()
-      .then(() => this.methods.bindEvents());
+      .then(() => this.methods.bindEvents())
+      .then(() => {
+        console.log(this.data.items)
+      });
   },
 };
 
 export default param;
+// 先复习一下排序过程
+/**
+ * 分组 排序 替换原值
+ */

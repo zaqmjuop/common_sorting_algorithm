@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <style scoped>
+    .tree {
+      display: grid;
+      grid-template-areas: "top top" "left  right";
+      grid-template-rows: 4em 4em;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .tree>.top {
+      grid-area: top;
+    }
+
+    .tree>.left {
+      grid-area: left;
+    }
+
+    .tree>.right {
+      grid-area: right;
+    }
+
+    .tree .value {
+      padding: 10px;
+      border: 3px solid #06c;
+      border-radius: 50%;
+    }
+  </style>
+</head>
+
+<body>
+  <section class="tree">
+    <div class="top">
+      <span class="value">数值</span>
+    </div>
+    <div class="left"></div>
+    <div class="right"></div>
+  </section>
+</body>
+
+</html>
