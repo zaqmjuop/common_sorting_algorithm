@@ -1,7 +1,5 @@
 
 import Dom from '../dom';
-import treeItem from './treeItem';
-import Component from './component';
 
 const param = {
   name: 'heapSort',
@@ -23,29 +21,6 @@ const param = {
     init() {
       console.log(this.elements.heapBoard)
       let promise = Promise.resolve();
-      for (let index = 0; index < 20; index += 1) {
-        const treeItemParam = Object.assign({ present: { value: index } }, treeItem);
-        promise = promise
-          .then(() => {
-            let result;
-            if (index === 0) {
-              result = this.appendChild(treeItemParam, this.elements.heapBoard, -1)
-            } else {
-              const isLeft = (index % 2 === 1);
-              const fatherIndex = Math.ceil(index / 2) - 1;
-              const father = this.data.items[fatherIndex];
-              if (isLeft) {
-                result = father.methods.appendLeft(treeItemParam);
-              } else {
-                result = father.methods.appendRight(treeItemParam);
-              }
-            }
-            return result;
-          })
-          .then((item) => {
-            this.data.items.push(item)
-          });
-      }
       return promise;
     },
     /** 获取20个随机数 */
@@ -93,4 +68,6 @@ export default param;
 // 先复习一下排序过程
 /**
  * 分组 排序 替换原值
+ * 对调动画
+ * 退出堆动画
  */
