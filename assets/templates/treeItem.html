@@ -4,6 +4,7 @@
 <head>
   <style scoped>
     .tree {
+      position: relative;
       display: grid;
       grid-template-areas: "top top" "left  right";
       grid-template-rows: 4em 4em;
@@ -23,9 +24,46 @@
     }
 
     .tree .value {
+      display: inline-block;
       padding: 10px;
       border: 3px solid #06c;
       border-radius: 50%;
+      min-width: 3em;
+      margin: 0;
+      z-index: 1;
+      background-color: #fff;
+      opacity: 1;
+    }
+
+    .bracket-left,
+    .bracket-right {
+      position: absolute;
+      width: calc(25% + 2px);
+      height: 3px;
+      background-color: #06c;
+      top: 50%;
+    }
+
+    .bracket-left {
+      left: 25%;
+    }
+
+    .bracket-right {
+      left: 50%;
+    }
+
+    .bracket-top {
+      position: absolute;
+      width: 3px;
+      height: 50%;
+      background-color: #06c;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: -1;
+    }
+    .hide{
+      display: none;
     }
   </style>
 </head>
@@ -33,10 +71,13 @@
 <body>
   <section class="tree">
     <div class="top">
-      <span class="value">数值</span>
+      <p class="value"></p>
     </div>
     <div class="left"></div>
     <div class="right"></div>
+    <span class="bracket-top hide"></span>
+    <span class="bracket-left hide"></span>
+    <span class="bracket-right hide"></span>
   </section>
 </body>
 
