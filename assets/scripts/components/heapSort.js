@@ -10,6 +10,7 @@ const param = {
     return {
       array: [],
       items: [],
+      bubbled: [],
       width: 1000,
       height: 400,
       lineCount: 5,
@@ -43,7 +44,7 @@ const param = {
         this.data.items.push(item);
       });
       this.methods.run();
-      this.methods.exchange(1, 2);
+      this.methods.bubble();
       console.log(this.data.items)
       let promise = Promise.resolve();
       return promise;
@@ -57,19 +58,21 @@ const param = {
     },
     fillDefault() {
       const ctx = this.elements.canvas.getContext('2d');
-      this.data.items.forEach((item, index) => {
-        if (index > 0) {
-          const fatherIndex = Math.trunc((index - 1) / 2);
-          const father = this.data.items[fatherIndex];
-          ctx.beginPath();
-          ctx.moveTo(item.left, item.top);
-          ctx.lineTo(father.left, father.top);
-          ctx.stroke();
-        }
+      const totalItems = this.data.items.concat(this.data.bubbled);
+      // 画连接线
+      this.data.items.forEach((item) => {
+        const index = this.data.items.indexOf(item);
+        if (index <= 0) { return false; }
+        const fatherIndex = Math.trunc((index - 1) / 2);
+        const father = this.data.items[fatherIndex];
+        ctx.beginPath();
+        ctx.moveTo(item.left, item.top);
+        ctx.lineTo(father.left, father.top);
+        ctx.stroke();
       });
       // 画圆
       ctx.fillStyle = '#fff';
-      this.data.items.forEach((item) => {
+      totalItems.forEach((item) => {
         ctx.beginPath();
         ctx.arc(item.left, item.top, item.radius, 0, 2 * Math.PI);
         ctx.fill();
@@ -79,7 +82,7 @@ const param = {
       ctx.fillStyle = '#000';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      this.data.items.forEach((item) => {
+      totalItems.forEach((item) => {
         ctx.fillText(item.value, item.left, item.top);
       });
       // moving
@@ -105,7 +108,7 @@ const param = {
       item1.moving = { left: item1.left, top: item1.top };
       item2.moving = { left: item2.left, top: item2.top };
       const frameCount = mesc / 1000 * this.data.fps;
-      const timeStep = 1000 / this.data.fps;
+      const timeStep = Math.round(1000 / this.data.fps);
       const item1AtLeft = item1.left <= item2.left;
       const item1AtTop = item1.top <= item2.top;
       const itemRelative = {
@@ -116,7 +119,6 @@ const param = {
       };
       const xstep = Math.abs(item1.left - item2.left) / frameCount;
       const ystep = Math.abs(item1.top - item2.top) / frameCount;
-      let frameNum = 0;
       let promise = Promise.resolve();
       for (let index = 0; index < frameCount; index += 1) {
         promise = promise
@@ -125,9 +127,86 @@ const param = {
             itemRelative.right.moving.left -= xstep;
             itemRelative.top.moving.top += ystep;
             itemRelative.bottom.moving.top -= ystep;
-            return utils.wait(Math.round(timeStep));
+            return utils.wait(timeStep);
           });
       }
+      promise = promise.then(() => {
+        this.data.items.splice(index1, 1, item2);
+        this.data.items.splice(index2, 1, item1);
+        const tmp = Object.assign({}, item1);
+        item1.left = item2.left;
+        item1.top = item2.top;
+        item2.left = tmp.left;
+        item2.top = tmp.top;
+        delete item1.moving;
+        delete item2.moving;
+      });
+      return promise;
+    },
+    // 将树顶冒泡
+    bubble(mesc = 1000) {
+      if (this.data.items.length <= 0) { return false; }
+      const toppest = this.data.items[0];
+      toppest.moving = {
+        left: toppest.left,
+        top: toppest.top,
+      };
+      const destination = {
+        left: this.data.width - (toppest.radius * (1 + 2 * this.data.bubbled.length)),
+        top: this.data.height - toppest.radius,
+      };
+      const distance = {
+        x: destination.left - toppest.left,
+        y: destination.top - toppest.top,
+      };
+      distance.total = distance.x + distance.y;
+      const frameCount = mesc / 1000 * this.data.fps;
+      const frameCountX = Math.trunc(distance.x / distance.total * frameCount);
+      const frameCountY = frameCount - frameCountX;
+      const step = {
+        x: distance.x / frameCountX,
+        y: distance.y / frameCountY,
+        time: 1000 / this.data.fps,
+        times: 0,
+      };
+      const lastNode = this.data.items[this.data.items.length - 1];
+      lastNode.moving = { left: lastNode.left, top: lastNode.top };
+      const stepLast = {
+        x: (toppest.left - lastNode.left) / frameCount,
+        y: (toppest.top - lastNode.top) / frameCount,
+      };
+      let promise = Promise.resolve();
+      for (let index = 0; index < frameCountY; index += 1) {
+        promise = promise.then(() => {
+          toppest.moving.top += step.y;
+          lastNode.moving.left += stepLast.x;
+          lastNode.moving.top += stepLast.y;
+          const time = Math.round(step.time * (step.times + 1) - step.time * step.times);
+          step.times += 1;
+          return utils.wait(time);
+        });
+      }
+      for (let index = 0; index < frameCountX; index += 1) {
+        promise = promise.then(() => {
+          toppest.moving.left += step.x;
+          lastNode.moving.left += stepLast.x;
+          lastNode.moving.top += stepLast.y;
+          const time = Math.round(step.time * (step.times + 1) - step.time * step.times);
+          step.times += 1;
+          return utils.wait(time);
+        });
+      }
+      promise = promise.then(() => {
+        this.data.items.splice(0, 1, lastNode);
+        this.data.bubbled.push(toppest);
+        console.log(toppest)
+        toppest.left = Math.round(toppest.moving.left);
+        toppest.top = Math.round(toppest.moving.top);
+        lastNode.left = Math.round(lastNode.moving.left);
+        lastNode.top = Math.round(lastNode.moving.top);
+        delete toppest.moving;
+        delete lastNode.moving;
+      });
       return promise;
     },
     /** 获取20个随机数 */
