@@ -44,8 +44,7 @@ const param = {
         this.data.items.push(item);
       });
       this.methods.run();
-      this.methods.bubble();
-      console.log(this.data.items)
+      // this.methods.heapSort();
       let promise = Promise.resolve();
       return promise;
     },
@@ -55,6 +54,9 @@ const param = {
         this.methods.fillDefault();
       }, 1000 / this.data.fps);
       return this.data.interval;
+    },
+    pause() {
+      return clearInterval(this.data.interval);
     },
     fillDefault() {
       const ctx = this.elements.canvas.getContext('2d');
@@ -72,7 +74,7 @@ const param = {
       });
       // 画圆
       ctx.fillStyle = '#fff';
-      totalItems.forEach((item) => {
+      this.data.items.forEach((item) => {
         ctx.beginPath();
         ctx.arc(item.left, item.top, item.radius, 0, 2 * Math.PI);
         ctx.fill();
@@ -102,7 +104,7 @@ const param = {
       });
     },
     // 交换2个数值
-    exchange(index1, index2, mesc = 1000) {
+    exchange(index1, index2, mesc = 200) {
       const item1 = this.data.items[index1];
       const item2 = this.data.items[index2];
       item1.moving = { left: item1.left, top: item1.top };
@@ -144,7 +146,7 @@ const param = {
       return promise;
     },
     // 将树顶冒泡
-    bubble(mesc = 1000) {
+    bubble(mesc = 200) { // 时间小于200会出现错误？
       if (this.data.items.length <= 0) { return false; }
       const toppest = this.data.items[0];
       toppest.moving = {
@@ -156,16 +158,15 @@ const param = {
         top: this.data.height - toppest.radius,
       };
       const distance = {
-        x: destination.left - toppest.left,
-        y: destination.top - toppest.top,
+        x: Math.abs(destination.left - toppest.left),
+        y: Math.abs(destination.top - toppest.top),
       };
-      distance.total = distance.x + distance.y;
       const frameCount = mesc / 1000 * this.data.fps;
-      const frameCountX = Math.trunc(distance.x / distance.total * frameCount);
+      const frameCountX = Math.trunc(distance.x / (distance.x + distance.y) * frameCount);
       const frameCountY = frameCount - frameCountX;
       const step = {
-        x: distance.x / frameCountX,
-        y: distance.y / frameCountY,
+        x: (destination.left - toppest.left) / frameCountX,
+        y: (destination.top - toppest.top) / frameCountY,
         time: 1000 / this.data.fps,
         times: 0,
       };
@@ -198,8 +199,8 @@ const param = {
       }
       promise = promise.then(() => {
         this.data.items.splice(0, 1, lastNode);
-        this.data.bubbled.push(toppest);
-        console.log(toppest)
+        this.data.items.pop();
+        this.data.bubbled.unshift(toppest);
         toppest.left = Math.round(toppest.moving.left);
         toppest.top = Math.round(toppest.moving.top);
         lastNode.left = Math.round(lastNode.moving.left);
@@ -207,6 +208,52 @@ const param = {
         delete toppest.moving;
         delete lastNode.moving;
       });
+      return promise;
+    },
+    // 第一次排序 从下至上
+    heapSortOnce() {
+      const lastParentIndex = Math.trunc(this.data.items.length / 2 - 0.5);
+      let promise = Promise.resolve();
+      for (let index = lastParentIndex; index >= 0; index -= 1) {
+        promise = promise.then(() => {
+          const parentNode = this.data.items[index];
+          const leftIndex = index * 2 + 1;
+          const rightIndex = index * 2 + 2;
+          const leftNode = this.data.items[leftIndex];
+          const rightNode = this.data.items[rightIndex];
+          let maxNode = parentNode;
+          let maxNodeIndex = index;
+          if (leftNode && leftNode.value > maxNode.value) {
+            maxNode = leftNode;
+            maxNodeIndex = leftIndex;
+          }
+          if (rightNode && rightNode.value > maxNode.value) {
+            maxNode = rightNode;
+            maxNodeIndex = rightIndex;
+          }
+          let result;
+          if (maxNode !== parentNode) {
+            result = this.methods.exchange(index, maxNodeIndex);
+          }
+          return result;
+        });
+      }
+      promise = promise.then(() => this.methods.bubble());
+      return promise;
+    },
+    heapSort() {
+      let promise = Promise.resolve();
+      for (let index = 0; index < this.data.items.length; index += 1) {
+        promise = promise.then(() => {
+          return this.methods.heapSortOnce();
+        });
+      }
+      promise = promise
+        .then(() => utils.wait(50))
+        .then(() => {
+          this.methods.pause();
+          this.data.array = this.data.bubbled.map(item => item.value);
+        });
       return promise;
     },
     /** 获取20个随机数 */
@@ -232,7 +279,8 @@ const param = {
       });
       Dom.of(this.elements.sort).on('click', () => {
         console.log('点击了排序');
-        console.log(this.data.array);
+        return this.methods.heapSort()
+          .then(() => console.log(this.data.array));
       });
     },
     getArray() {
@@ -250,9 +298,3 @@ const param = {
 };
 
 export default param;
-// 先复习一下排序过程
-/**
- * 分组 排序 替换原值
- * 对调动画
- * 退出堆动画
- */
