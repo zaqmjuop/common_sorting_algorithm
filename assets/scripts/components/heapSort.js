@@ -9,17 +9,65 @@ const param = {
     return {
       array: [],
       items: [],
+      width: 1000,
+      height: 400,
+      lineCount: 5,
     };
   },
   selectors: {
-    ul: 'ul',
+    canvas: 'canvas',
     heapBoard: '.heap-board',
     getRandom: '*[name=get-random]',
     sort: '*[name=sort]',
   },
   methods: {
     init() {
-      console.log(this.elements.heapBoard)
+      this.methods.getRandom();
+      const ctx = this.elements.canvas.getContext('2d');
+      // 添加Items
+      this.data.array.forEach((value, index) => {
+        let lineNum = 0;
+        while ((2 ** lineNum) - 1 <= index) {
+          lineNum += 1;
+        }
+        lineNum -= 1;
+        const order = index - (2 ** lineNum) + 1;
+        const left = this.data.width / (2 ** lineNum) * (order + 0.5);
+        const top = this.data.height / this.data.lineCount * (lineNum + 0.5);
+        const radius = 20;
+        const item = {
+          value, index, left, top, radius, lineNum, order,
+        };
+        this.data.items.push(item);
+      });
+      // 画连接线
+      this.data.items.forEach((item, index) => {
+        if (index > 0) {
+          const fatherIndex = Math.trunc((index - 1) / 2);
+          const father = this.data.items[fatherIndex];
+          ctx.beginPath();
+          ctx.moveTo(item.left, item.top);
+          ctx.lineTo(father.left, father.top);
+          ctx.stroke();
+        }
+      });
+      // 画圆
+      ctx.fillStyle = '#fff';
+      this.data.items.forEach((item) => {
+        ctx.beginPath();
+        ctx.arc(item.left, item.top, item.radius, 0, 2 * Math.PI);
+        ctx.fillStyle = '#fff';
+        ctx.fill();
+        ctx.stroke();
+      });
+      // 填充值
+      ctx.fillStyle = '#000';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      this.data.items.forEach((item) => {
+        ctx.fillText(item.value, item.left, item.top);
+      })
+      console.log(this.data.items)
       let promise = Promise.resolve();
       return promise;
     },
@@ -57,9 +105,8 @@ const param = {
   },
   created() {
     return this.methods.init()
-      .then(() => this.methods.bindEvents())
       .then(() => {
-        console.log(this.data.items)
+        this.methods.bindEvents();
       });
   },
 };
