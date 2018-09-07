@@ -1,5 +1,6 @@
 
 import Dom from '../dom';
+import utils from '../utils';
 
 const param = {
   name: 'heapSort',
@@ -12,6 +13,7 @@ const param = {
       width: 1000,
       height: 400,
       lineCount: 5,
+      fps: 60,
     };
   },
   selectors: {
@@ -23,7 +25,7 @@ const param = {
   methods: {
     init() {
       this.methods.getRandom();
-      const ctx = this.elements.canvas.getContext('2d');
+      this.data.ctx = this.elements.canvas.getContext('2d');
       // 添加Items
       this.data.array.forEach((value, index) => {
         let lineNum = 0;
@@ -40,7 +42,21 @@ const param = {
         };
         this.data.items.push(item);
       });
-      // 画连接线
+      this.methods.run();
+      this.methods.exchange(1, 2);
+      console.log(this.data.items)
+      let promise = Promise.resolve();
+      return promise;
+    },
+    run() {
+      this.data.interval = setInterval(() => {
+        this.data.ctx.clearRect(0, 0, this.data.width, this.data.height);
+        this.methods.fillDefault();
+      }, 1000 / this.data.fps);
+      return this.data.interval;
+    },
+    fillDefault() {
+      const ctx = this.elements.canvas.getContext('2d');
       this.data.items.forEach((item, index) => {
         if (index > 0) {
           const fatherIndex = Math.trunc((index - 1) / 2);
@@ -56,7 +72,6 @@ const param = {
       this.data.items.forEach((item) => {
         ctx.beginPath();
         ctx.arc(item.left, item.top, item.radius, 0, 2 * Math.PI);
-        ctx.fillStyle = '#fff';
         ctx.fill();
         ctx.stroke();
       });
@@ -66,9 +81,53 @@ const param = {
       ctx.textBaseline = 'middle';
       this.data.items.forEach((item) => {
         ctx.fillText(item.value, item.left, item.top);
-      })
-      console.log(this.data.items)
+      });
+      // moving
+      this.data.items.forEach((item) => {
+        if (!item.moving) { return false; }
+        // 画圆
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.arc(item.moving.left, item.moving.top, item.radius, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.stroke();
+        // 填充值
+        ctx.fillStyle = '#000';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(item.value, item.moving.left, item.moving.top);
+      });
+    },
+    // 交换2个数值
+    exchange(index1, index2, mesc = 1000) {
+      const item1 = this.data.items[index1];
+      const item2 = this.data.items[index2];
+      item1.moving = { left: item1.left, top: item1.top };
+      item2.moving = { left: item2.left, top: item2.top };
+      const frameCount = mesc / 1000 * this.data.fps;
+      const timeStep = 1000 / this.data.fps;
+      const item1AtLeft = item1.left <= item2.left;
+      const item1AtTop = item1.top <= item2.top;
+      const itemRelative = {
+        left: item1AtLeft ? item1 : item2,
+        right: item1AtLeft ? item2 : item1,
+        top: item1AtTop ? item1 : item2,
+        bottom: item1AtTop ? item2 : item1,
+      };
+      const xstep = Math.abs(item1.left - item2.left) / frameCount;
+      const ystep = Math.abs(item1.top - item2.top) / frameCount;
+      let frameNum = 0;
       let promise = Promise.resolve();
+      for (let index = 0; index < frameCount; index += 1) {
+        promise = promise
+          .then(() => {
+            itemRelative.left.moving.left += xstep;
+            itemRelative.right.moving.left -= xstep;
+            itemRelative.top.moving.top += ystep;
+            itemRelative.bottom.moving.top -= ystep;
+            return utils.wait(Math.round(timeStep));
+          });
+      }
       return promise;
     },
     /** 获取20个随机数 */
