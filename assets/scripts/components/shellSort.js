@@ -177,14 +177,14 @@ const param = {
             stage.forEach((inStage, index) => {
               if (inStage !== item) {
                 inStage.dispatchEvent('send', { order: index + 1 });
-                item.methods.fall(-300);
+                item.methods.fall();
               }
             });
             return utils.wait(222);
           }).then(() => {
             // 将Item插入舞台
             const index = stage.indexOf(item);
-            item.methods.fall(-300);
+            item.methods.fall();
             item.dispatchEvent('send', { order: index + 1 });
             return utils.wait(222);
           });

@@ -27,6 +27,9 @@ const param = {
       if (Object.keys(this.present).includes('value')) {
         this.data.value = this.present.value || 0;
       }
+      if (Number.isSafeInteger(this.present.width) && this.present.width >= 0) {
+        Dom.of(this.template).css('width', `${this.present.width}px`);
+      }
       this.data.order = this.present.order || 1;
       this.methods.moveToOrder();
       this.methods.fill();
@@ -68,7 +71,7 @@ const param = {
       /** 接受消息改变位置 */
     },
     fall(px) {
-      let bottom = -300;
+      let bottom = -200;
       if (Number.isSafeInteger(px)) { bottom = px; }
       Dom.of(this.template).css('bottom', `${bottom}px`);
     },
@@ -96,11 +99,16 @@ const param = {
       }
     },
     fill() {
-      Dom.of(this.template).css('height', `${this.data.value * 3}px`);
+      const rate = this.present.heightRate || 2;
+      Dom.of(this.template).css('height', `${this.data.value * rate}px`);
       Dom.of(this.template).text(this.data.value);
     },
     moveToOrder() {
-      Dom.of(this.template).css('left', `${(this.data.order - 1) * 40}px`);
+      let spacing = 40;
+      if (Number.isSafeInteger(this.present.width)) {
+        spacing = this.present.width + 10;
+      }
+      Dom.of(this.template).css('left', `${(this.data.order - 1) * spacing}px`);
       Dom.of(this.template).addClass('high-light');
       setTimeout(() => Dom.of(this.template).removeClass('high-light'), 200);
     },
