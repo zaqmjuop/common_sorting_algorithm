@@ -145,6 +145,21 @@ const wait = (mesc) => {
   return promise;
 };
 
+// 保留数字小数点位数
+const retain = (value, digit = 0) => {
+  if (!Number.isFinite(value)) { return NaN; }
+  if (!Number.isSafeInteger(digit) || digit < 0) { return Math.trunc(value); }
+  let result;
+  const integer = Math.trunc(value);
+  const decimal = String(value).match(/\.\d*/);
+  if (decimal) {
+    result = Number(`${integer}${decimal[0].slice(0, digit + 1)}`);
+  } else {
+    result = integer;
+  }
+  return result;
+};
+
 /** 工具方法集合 */
 const utils = {
   isElement,
@@ -164,6 +179,7 @@ const utils = {
   getEnv,
   bubbleSort,
   wait,
+  retain,
 };
 
 export default utils;
