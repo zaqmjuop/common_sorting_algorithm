@@ -89,7 +89,7 @@ const param = {
         for (let i = 0; i < this.data.items.length; i += 1) {
           promise = promise
             .then(() => this.methods.sortOnce())
-            .then(() => utils.wait(1000));
+            .then(() => utils.wait(222));
         }
         promise = promise.then(() => {
           const res = this.data.container.map(item => item.data.value);
@@ -104,11 +104,11 @@ const param = {
           if (this.data.compared) { return false; }
           const cpt = this.data.items[this.data.sortTimes];
           const item = this.data.container[i];
-          item.dispatchEvent('send', { method: 'highLight', time: 1000 });
+          item.dispatchEvent('send', { method: 'highLight', time: 222 });
           if (item.data.value > cpt.data.value) {
             this.data.compared = true;
           }
-          return utils.wait(1000);
+          return utils.wait(222);
         });
       }
 
@@ -122,7 +122,7 @@ const param = {
               item.dispatchEvent('send', { order: index + 1 });
             }
           });
-          return utils.wait(1000);
+          return utils.wait(222);
         })
         .then(() => {
           const cpt = this.data.items[this.data.sortTimes];
