@@ -97,10 +97,7 @@ const param = {
         if (item.highLightDigit >= 0) {
           const fontWidth = Math.ceil(this.data.ctx.measureText(`${item.value}`).width);
           const grd = this.data.ctx.createLinearGradient(center.x - fontWidth / 2, 0, center.x + fontWidth / 2, 0);
-          if (item.value < 10) {
-            grd.addColorStop(0, '#f00');
-            grd.addColorStop(1, '#f00');
-          } else if (item.highLightDigit === 0) {
+          if (item.highLightDigit === 0) {
             grd.addColorStop(0, '#000');
             grd.addColorStop(0.5, '#000');
             grd.addColorStop(0.5, '#f00');
@@ -113,7 +110,8 @@ const param = {
           }
           this.data.ctx.fillStyle = grd;
         }
-        this.data.ctx.fillText(item.value, item.left + item.width / 2, item.top + item.height / 2);
+        const text = (item.value < 10) ? `0${item.value}` : `${item.value}`;
+        this.data.ctx.fillText(text, item.left + item.width / 2, item.top + item.height / 2);
         this.data.ctx.fillStyle = '#000';
       });
       // 画容器
@@ -161,13 +159,23 @@ const param = {
       return clearInterval(this.data.interval);
     },
     radixSort() {
-      return this.methods.radixSortOnce();
+      let promise = Promise.resolve();
+      this.data.digit = 0;
+      for (let index = 0; index < 2; index += 1) {
+        promise = promise
+          .then(() => this.methods.radixSortOnce())
+          .then(() => {
+            this.data.digit += 1;
+            return utils.wait(222);
+          });
+      }
+      return promise;
     },
     radixSortOnce() {
       // 找到分组->下放->todo 返回 todo
       this.data.items.forEach((item) => {
-        const str = `${item.value}`;
-        item.teamIndex = Number(str[str.length - 1 - this.data.digit]);
+        const text = (item.value < 10) ? `0${item.value}` : `${item.value}`;
+        item.teamIndex = Number(text[text.length - 1 - this.data.digit]);
         item.highLightDigit = this.data.digit;
       });
       // 下放
@@ -189,7 +197,6 @@ const param = {
         let top = 0;
         let goback = Promise.resolve();
         this.data.containers.forEach((team) => {
-          team.reverse();
           team.forEach((item) => {
             goback = goback.then(() => {
               const positon = { left, top };
@@ -209,6 +216,7 @@ const param = {
         const newItems = [];
         this.data.containers.forEach((team) => {
           newItems.push(...team);
+          team.splice(0, team.length);
         });
         this.data.items.splice(0, newItems.length, ...newItems);
         this.data.items.forEach((item) => {
@@ -251,11 +259,6 @@ const param = {
       this.data.isBubbleSortDone = 0;
       this.data.isFinished = false;
     },
-    /** 按照20个随机数改变子组件li高度 */
-    sendArray() {
-      this.data.items.forEach((item, index) => {
-      });
-    },
     bindEvents() {
       // 随机召唤数组
       Dom.of(this.elements.getRandom).on('click', () => {
@@ -263,7 +266,9 @@ const param = {
           return console.warn('正在运行中,你可以刷新页面重新开始');
         }
         this.methods.getRandom();
-        return this.methods.sendArray();
+        this.data.items.forEach((item, index) => {
+          item.value = this.data.array[index];
+        });
       });
       Dom.of(this.elements.sort).on('click', () => {
         radixSort(this.data.array);
