@@ -1,6 +1,7 @@
 
 import Dom from '../dom';
 import utils from '../utils';
+import * as sort from '../sort/index';
 
 const radixSort = (array) => {
   if (!(array instanceof Array)) { return false; }
@@ -56,6 +57,7 @@ const param = {
     canvas: 'canvas',
     getRandom: '*[name=get-random]',
     sort: '*[name=sort]',
+    test: '*[name=test]',
   },
   methods: {
     init() {
@@ -260,6 +262,12 @@ const param = {
       this.data.isFinished = false;
     },
     bindEvents() {
+      // 测试方法
+      Dom.of(this.elements.test).on('click', () => {
+        console.log(this.data.array)
+        sort.bubbleSort(this.data.array);
+        console.log(this.data.array)
+      });
       // 随机召唤数组
       Dom.of(this.elements.getRandom).on('click', () => {
         if (this.data.isRunning) {
