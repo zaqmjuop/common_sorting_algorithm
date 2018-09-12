@@ -20,14 +20,14 @@ const radixSort = (array) => {
   let decimal = 0;
   while (max > 0) {
     decimal += 1;
-    max = Math.floor(max / 10);
+    max = Math.trunc(max / 10);
   }
   decimal = (decimal >= 1) ? decimal : 1;
   // 最大值是2位数就排2次，3位数就排3次
   for (let time = 0; time < decimal; time += 1) {
     // 算出对应位数的数字，并按分组放进容器
     array.forEach((item) => {
-      const index = Math.floor(item / (10 ** time)) % 10;
+      const index = Math.trunc(item / (10 ** time)) % 10;
       container[index].push(item);
     });
     // 替换原数组并清空容器
@@ -264,9 +264,8 @@ const param = {
     bindEvents() {
       // 测试方法
       Dom.of(this.elements.test).on('click', () => {
-        console.log(this.data.array)
-        sort.bubbleSort(this.data.array);
-        console.log(this.data.array)
+        sort.quickSort(this.data.array);
+        console.log(this.data.array);
       });
       // 随机召唤数组
       Dom.of(this.elements.getRandom).on('click', () => {

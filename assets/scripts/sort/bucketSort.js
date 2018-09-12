@@ -12,7 +12,7 @@ const bucketSort = (array) => {
   });
   // 找到断点
   const breakpoints = []; // 中间的断点，不包括min和max
-  const spacing = Math.floor((max - min) / 5);
+  const spacing = Math.trunc((max - min) / 5);
   let breakpoint = min;
   for (let index = 0; index < DEFAULT_BUCKET_SIZE - 1; index += 1) {
     breakpoint += spacing;
@@ -33,7 +33,7 @@ const bucketSort = (array) => {
   container.forEach(item => insertionSort(item));
   // 替换原数组
   array.splice(0, array.length);
-  container.forEach(item => array.push(...item));
+  container.forEach(team => array.push(...team));
   return array;
 };
 
