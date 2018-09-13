@@ -129,7 +129,7 @@ const param = {
         // 分组 排序 替换原值
         console.log('点击了排序');
         this.methods.quickSortRecursion()
-          .then(() => console.log('done!'));
+          .then(() => console.log(this.data.items.map(item => item.componentId)));
         console.log(this.data.array);
       });
     },

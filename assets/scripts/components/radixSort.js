@@ -264,8 +264,14 @@ const param = {
     bindEvents() {
       // 测试方法
       Dom.of(this.elements.test).on('click', () => {
-        sort.quickSort(this.data.array);
-        console.log(this.data.array);
+        const container = this.data.array.map((value, index) => {
+          const item = { value, id: index + 1 };
+          return item;
+        });
+        sort.sort(container, (item) => {
+          return { property: item.value };
+        });
+        console.log(container);
       });
       // 随机召唤数组
       Dom.of(this.elements.getRandom).on('click', () => {
