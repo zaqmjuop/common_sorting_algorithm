@@ -254,7 +254,7 @@ const param = {
       if (!Number.isSafeInteger(number)) { throw new TypeError(`参数number不能是${number}`); }
       const ary = new Array(number);
       for (let index = 0; index < ary.length; index += 1) {
-        ary[index] = Math.trunc(100 * Math.random());
+        ary[index] = Math.trunc(3 * Math.random());
       }
       this.data.array = ary;
       this.data.bubbleSortedTimes = 0;
@@ -264,14 +264,18 @@ const param = {
     bindEvents() {
       // 测试方法
       Dom.of(this.elements.test).on('click', () => {
-        const container = this.data.array.map((value, index) => {
-          const item = { value, id: index + 1 };
+        const container = this.data.array.slice(0, 10).map((value, index) => {
+          const ary = new Array(this.data.array.length - 10 - index);
+          ary.fill(value);
+          const item = ary.join('');
           return item;
         });
-        sort.sort(container, (item) => {
-          return { property: item.value };
-        });
-        console.log(container);
+        // sort.sort(container, (item) => {
+        //   return item.value;
+        // });
+        sort.sort(container)
+        console.log(container)
+        // console.log(container)
       });
       // 随机召唤数组
       Dom.of(this.elements.getRandom).on('click', () => {
