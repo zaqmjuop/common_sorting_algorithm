@@ -66,6 +66,8 @@ const param = {
           } else if (event.detail.method === 'fall') {
             this.methods.fall();
           }
+        } else if (typeof event.detail.backColor === 'string') {
+          Dom.of(this.template).css('background-color', event.detail.backColor);
         }
       });
       /** 接受消息改变位置 */

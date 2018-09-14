@@ -15,7 +15,9 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "parcel dev.html -p 3000"
+    "dev": "parcel dev.html -p 3000",
+    "buildjs": "parcel build assets/scripts/index.js -d ./docs",
+    "product": "parcel build assets/scripts/index.js -d ./docs && service nginx restart"
   },
   "repository": {
     "type": "git",

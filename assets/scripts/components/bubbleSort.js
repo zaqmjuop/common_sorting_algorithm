@@ -126,6 +126,7 @@ const param = {
       promise = promise
         .then(() => {
           this.data.bubbleSortedTimes += 1;
+          console.log(this.data.items.map(item => item.data.order))
         });
       return promise;
     },
