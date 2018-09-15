@@ -64,6 +64,8 @@ const param = {
         const item2 = this.data.items[index2];
         const order1 = item1.data.order;
         const order2 = item2.data.order;
+        this.data.items.splice(index1, 1, item2);
+        this.data.items.splice(index2, 1, item1);
         console.log(`替换 [${index1}]${item1.data.value} <-> [${index2}]${item2.data.value}`);
         item1.dispatchEvent('send', { order: order2 });
         item2.dispatchEvent('send', { order: order1 });
@@ -74,14 +76,14 @@ const param = {
     },
     bubbleSortOnce() {
       // 若冒泡已经完成
-      if (this.data.isBubbleSortDone === 1) {
+      if (this.data.isBubbleSortDone) {
         return false;
       }
       // 排序之前
-      let promise = new Promise((resolve) => {
-        this.data.isBubbleSortDone = 0;
-        resolve();
-      });
+      const insideData = {
+        hasChange: false,
+      };
+      let promise = Promise.resolve();
       // 排序
       for (let i = 0; i < this.data.items.length - this.data.bubbleSortedTimes - 1; i += 1) {
         promise = promise
@@ -102,9 +104,7 @@ const param = {
                   return utils.wait(this.data.speed);
                 })
                 .then(() => {
-                  this.data.items[i] = item2;
-                  this.data.items[i + 1] = item1;
-                  this.data.isBubbleSortDone = -1;
+                  insideData.hasChange = true;
                   return this.methods.exchange(i, i + 1);
                 });
             }
@@ -116,8 +116,8 @@ const param = {
             .then(() => {
               this.data.items[i + 1].dispatchEvent('send', { method: 'sorted' });
               // 冒泡是否完成
-              if (this.data.isBubbleSortDone === 0) {
-                this.data.isBubbleSortDone = 1;
+              if (!insideData.hasChange) {
+                this.data.isBubbleSortDone = true;
               }
             });
         }
@@ -126,22 +126,13 @@ const param = {
       promise = promise
         .then(() => {
           this.data.bubbleSortedTimes += 1;
-          console.log(this.data.items.map(item => item.data.order))
         });
       return promise;
-    },
-    initArray() {
-      // 初始化array
-      if (this.data.isRunning) {
-        return console.warn('正在运行中,你可以刷新页面重新开始');
-      }
-      this.methods.getRandom();
-      return this.data.array;
     },
     bindEvents() {
       // 随机召唤数组
       Dom.of(this.elements.getRandom).on('click', () => {
-        return this.methods.initArray();
+        return this.methods.getRandom();
       });
       // 冒泡排序
       Dom.of(this.elements.sort).on('click', () => {
@@ -150,19 +141,17 @@ const param = {
         }
         // 排序前
         if (this.data.isSorted || this.data.array.every(item => !item || item <= 0)) {
-          this.methods.initArray();
-          this.data.bubbleSortedTimes = 0;
-          this.data.isBubbleSortDone = 0;
-          this.data.exchangeTimes = 0;
-          this.data.isSorted = false;
+          this.methods.getRandom();
         }
+        // 排序前
+        this.data.isRunning = true;
+        this.data.speed = 1000 - Number(this.elements.speed.value) * 100;
+        this.data.bubbleSortedTimes = 0;
+        this.data.isBubbleSortDone = false;
+        this.data.exchangeTimes = 0;
+        this.data.isSorted = false;
         // 排序
         let promise = Promise.resolve();
-        promise.then(() => {
-          this.data.isRunning = true;
-          const speedSelect = Number(this.elements.speed.value);
-          this.data.speed = 1000 - speedSelect * 100;
-        });
         for (let i = 0; i < this.data.array.length; i += 1) {
           promise = promise.then(() => this.methods.bubbleSortOnce());
         }
@@ -170,8 +159,8 @@ const param = {
         promise = promise.then(() => {
           this.data.isRunning = false;
           this.data.isSorted = true;
-          console.log(`done。 交换次数${this.data.exchangeTimes}`);
-          console.log(this.data.array);
+          this.data.array = this.data.items.map(item => item.data.value);
+          console.log(`done。 交换次数${this.data.exchangeTimes}`, this.data.array);
         });
         return promise;
       });

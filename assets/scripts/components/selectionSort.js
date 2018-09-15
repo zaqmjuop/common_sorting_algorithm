@@ -15,6 +15,7 @@ const param = {
       speed: 500,
       isRunning: false,
       isSorted: false,
+      exchangeTimes: 0,
     };
   },
   selectors: {
@@ -74,9 +75,6 @@ const param = {
     },
     /** 排序一次 */
     sortOnce() {
-      if (this.data.sortTimes > this.data.items.length - 2) {
-        return console.warn('排序已完成,你可以点击左侧按钮重新开始');
-      }
       let promise = Promise.resolve();
       const insideData = {
         start: this.data.sortTimes,
@@ -130,23 +128,21 @@ const param = {
       });
       // 选择排序
       Dom.of(this.elements.sort).on('click', () => {
-        if (this.data.sortTimes > this.data.items.length - 2) {
-          return console.warn('排序已完成,你可以点击左侧按钮重新开始');
-        }
         if (this.data.isRunning) {
           return console.warn('正在运行中,你可以刷新页面重新开始');
         }
         // 排序之前
-        let promise = new Promise((resolve) => {
-          if (this.data.isSorted) {
-            this.methods.getRandom();
-          }
-          this.data.speed = 1000 - Number(this.elements.speed.value) * 100;
-          this.data.items.forEach((item) => {
-            item.dispatchEvent('send', { backColor: '' });
-          });
-          resolve();
+        if (this.data.isSorted || this.data.array.every(item => !item || item <= 0)) {
+          this.methods.getRandom();
+        }
+        this.data.isRunning = true;
+        this.data.exchangeTimes = 0;
+        this.data.sortTimes = 0;
+        this.data.speed = 1000 - Number(this.elements.speed.value) * 100;
+        this.data.items.forEach((item) => {
+          item.dispatchEvent('send', { backColor: '' });
         });
+        let promise = Promise.resolve();
         // 排序
         for (let i = 0; i < this.data.items.length - 1; i += 1) {
           promise = promise
@@ -157,7 +153,7 @@ const param = {
           .then(() => {
             this.data.isRunning = false;
             this.data.isSorted = true;
-            console.log('done');
+            console.log(`done。 交换次数${this.data.exchangeTimes}`);
           });
         return promise;
       });

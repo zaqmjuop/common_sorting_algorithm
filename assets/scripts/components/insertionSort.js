@@ -1,6 +1,7 @@
 import li from './li';
 import Dom from '../dom';
 import utils from '../utils';
+import { getRandomArray } from '../helper';
 
 const param = {
   name: 'insertionSort',
@@ -12,7 +13,7 @@ const param = {
       items: [],
       container: [],
       sortTimes: 0,
-      compared: false,
+      isRunning: false,
     };
   },
   selectors: {
@@ -20,138 +21,152 @@ const param = {
     getRandom: '*[name=get-random]',
     sort: '*[name=sort]',
     container: '*[name=container]',
+    speed: '*[name=speed]',
   },
   methods: {
     init() {
+      // 20个<li>
       let promise = Promise.resolve();
       for (let index = 0; index < 20; index += 1) {
         const liParam = Object.assign({ present: { order: index + 1 } }, li);
-        promise = promise.then(() => this.appendChild(liParam, this.elements.ul, -1))
+        promise = promise
+          .then(() => this.appendChild(liParam, this.elements.ul, -1))
           .then(item => this.data.items.push(item));
       }
       return promise;
     },
     /** 获取20个随机数 */
-    getRandom(number = 20) {
-      if (!Number.isSafeInteger(number)) { throw new TypeError(`参数number不能是${number}`); }
-      const ary = new Array(number);
-      for (let index = 0; index < ary.length; index += 1) {
-        ary[index] = Math.trunc(100 * Math.random()) + 1;
-      }
-      this.data.array = ary;
-      this.data.bubbleSortedTimes = 0;
-      this.data.isBubbleSortDone = 0;
-      this.data.isFinished = false;
-    },
-    /** 按照20个随机数改变子组件li高度 */
-    sendArray() {
+    getRandom() {
+      if (this.data.isRunning) { return false; }
+      this.data.array = getRandomArray();
+      // 改变Li高度
       this.data.items.forEach((item, index) => {
         item.dispatchEvent('send', { value: this.data.array[index] });
-        item.dispatchEvent('send', { method: 'unfall' });
       });
-    },
-    /** 操作Li位置的方法,2个li交换位置
-   * @param {number} index1 - 一个数字，对应this.data.items[index1]
-   * @param {number} index2 - 一个数字，对应this.data.items[index2]
-   */
-    exchange(index1, index2) {
-      if (!Number.isSafeInteger(index1) || index1 < 0 || index1 > 19) {
-        throw new Error(`index1不能是${index1}`);
-      }
-      if (!Number.isSafeInteger(index2) || index2 < 0 || index2 > 19) {
-        throw new Error(`index2不能是${index2}`);
-      }
-      if (index1 !== index2) {
-        this.data.exchangePromise = this.data.exchangePromise
-          .then(() => {
-            const item1 = this.data.items[index1];
-            const item2 = this.data.items[index2];
-            const order1 = item1.data.order;
-            const order2 = item2.data.order;
-            console.log('替换', item1.data.value, item2.data.value);
-            item1.dispatchEvent('send', { order: order2 });
-            item2.dispatchEvent('send', { order: order1 });
-          });
-      }
-      return this.data.exchangePromise;
+      return this.data.array;
     },
     bindEvents() {
       // 随机召唤数组
       Dom.of(this.elements.getRandom).on('click', () => {
+        return this.methods.getRandom();
+      });
+      Dom.of(this.elements.sort).on('click', () => {
         if (this.data.isRunning) {
           return console.warn('正在运行中,你可以刷新页面重新开始');
         }
-        this.methods.getRandom();
-        return this.methods.sendArray();
-      });
-      Dom.of(this.elements.sort).on('click', () => {
+        if (this.data.isSorted || this.data.array.every(item => !item || item <= 0)) {
+          this.methods.getRandom();
+        }
+        // 排序之前
+        this.data.isRunning = true;
+        this.data.speed = 1000 - Number(this.elements.speed.value) * 100;
+        // 排序
         let promise = Promise.resolve();
         for (let i = 0; i < this.data.items.length; i += 1) {
           promise = promise
             .then(() => this.methods.sortOnce())
-            .then(() => utils.wait(222));
+            .then(() => utils.wait(this.data.speed));
         }
+        // 放回到原数组位置
         promise = promise.then(() => {
-          const res = this.data.container.map(item => item.data.value);
-          console.log('排序完成', res);
+          let goBack = Promise.resolve();
+          this.data.container.forEach((item) => {
+            goBack = goBack
+              .then(() => {
+                item.dispatchEvent('send', { method: 'unfall' });
+                item.dispatchEvent('send', { method: 'unselect' });
+                return utils.wait(this.data.speed);
+              });
+          });
+          return goBack;
         });
+        // 排序后
+        promise = promise
+          .then(() => {
+            this.data.items = this.data.container;
+            this.data.array = this.data.items.map(item => item.data.value);
+            this.data.container = [];
+            this.data.isRunning = false;
+            this.data.isSorted = true;
+            this.data.sortTimes = 0;
+            console.log('done');
+          });
       });
     },
     sortOnce() {
-      let promise = Promise.resolve(this.data.compared = false);
+      // 排序前
+      const inTurn = this.data.items[this.data.sortTimes];
+      const insideData = {
+        index: -1,
+      };
+      // 搜索位置
+      let promise = Promise.resolve();
       for (let i = 0; i < this.data.container.length; i += 1) {
-        promise = promise.then(() => {
-          if (this.data.compared) { return false; }
-          const cpt = this.data.items[this.data.sortTimes];
-          const item = this.data.container[i];
-          item.dispatchEvent('send', { method: 'highLight', time: 222 });
-          if (item.data.value > cpt.data.value) {
-            this.data.compared = true;
-          }
-          return utils.wait(222);
-        });
+        promise = promise
+          .then(() => {
+            if (insideData.index >= 0) { return false; }
+            const bottomItem = this.data.container[i];
+            // 红色高亮
+            let highLight = Promise.resolve();
+            highLight = highLight
+              .then(() => {
+                bottomItem.dispatchEvent('send', { method: 'highLight', time: this.data.speed });
+                return utils.wait(this.data.speed);
+              });
+            if (bottomItem.data.value > inTurn.data.value) {
+              insideData.index = i;
+              // 黄色高亮
+              highLight = highLight
+                .then(() => {
+                  bottomItem.dispatchEvent('send', { method: 'highLight', backColor: 'yellow', time: this.data.speed });
+                  return utils.wait(this.data.speed);
+                });
+            }
+            return highLight;
+          });
       }
-
+      // 让位
       promise = promise
         .then(() => {
-          const cpt = this.data.items[this.data.sortTimes];
-          this.methods.insertContainer(cpt);
-          // 在这里加比较动画
-          this.data.container.forEach((item, index) => {
-            if (item !== cpt) {
-              item.dispatchEvent('send', { order: index + 1 });
-            }
+          this.methods.insertContainer(inTurn);
+          if (insideData.index < 0) { return false; }
+          const makeWay = new Promise((resolve) => {
+            this.data.container.forEach((item, index) => {
+              if (index > insideData.index) {
+                item.dispatchEvent('send', { order: index + 1 });
+              }
+            });
+            resolve(utils.wait(this.data.speed));
           });
-          return utils.wait(222);
-        })
+          return makeWay;
+        });
+      // 插入
+      promise = promise
         .then(() => {
-          const cpt = this.data.items[this.data.sortTimes];
-          const order = this.data.container.findIndex(item => item === cpt) + 1;
-          cpt.dispatchEvent('send', { order });
-          cpt.dispatchEvent('send', { method: 'select' });
-          cpt.dispatchEvent('send', { method: 'fall' });
+          const order = this.data.container.findIndex(item => item === inTurn) + 1;
+          // 找不到inturn??
+          inTurn.dispatchEvent('send', { order });
+          inTurn.dispatchEvent('send', { method: 'select' });
+          inTurn.dispatchEvent('send', { method: 'fall' });
           this.data.sortTimes += 1;
-          return utils.wait(100);
+          return utils.wait(this.data.speed);
         });
       return promise;
     },
+    // 插入到 this.data.container
     insertContainer(cpt) {
+      let index = -1;
       for (let i = 0; i < this.data.container.length; i += 1) {
-        const item = this.data.container[i];
-        if (cpt.data.value < item.data.value) {
-          this.data.container.splice(i, 0, cpt);
+        if (this.data.container[i].data.value > cpt.data.value) {
+          index = i;
           break;
         }
       }
-      if (!this.data.container.includes(cpt)) {
-        this.data.container.push(cpt);
+      if (index === -1) {
+        index = this.data.container.length;
       }
+      this.data.container.splice(index, 0, cpt);
       return this.data.container;
-    },
-    getArray() {
-      const array = this.data.items.map(item => item.data.value);
-      this.data.array = array;
-      return array;
     },
   },
   created() {
