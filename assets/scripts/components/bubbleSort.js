@@ -139,7 +139,6 @@ const param = {
         if (this.data.isRunning) {
           return console.warn('正在运行中,你可以刷新页面重新开始');
         }
-        // 排序前
         if (this.data.isSorted || this.data.array.every(item => !item || item <= 0)) {
           this.methods.getRandom();
         }
