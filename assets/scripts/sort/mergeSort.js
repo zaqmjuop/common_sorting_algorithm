@@ -12,12 +12,12 @@ const halve = (array) => {
 };
 
 /** 把一个数组切碎成多元数组 */
-const shredding = (array) => {
+const cutUp = (array) => {
   if (!(array instanceof Array)) { return false; }
   halve(array);
   array.forEach((item) => {
     if (item instanceof Array && item.length > 2) {
-      shredding(item);
+      cutUp(item);
     }
   });
   return array;
@@ -59,7 +59,7 @@ const recursiveMerge = (array) => {
 };
 
 const mergeSort = (array) => {
-  shredding(array); // 递归分组
+  cutUp(array); // 递归分组
   recursiveMerge(array);// 递归合并并排序
   return array;
 };

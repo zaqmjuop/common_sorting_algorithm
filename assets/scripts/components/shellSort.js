@@ -2,31 +2,7 @@ import li from './li';
 import Dom from '../dom';
 import utils from '../utils';
 import Component from './component';
-import { getRandomArray } from '../helper';
-
-function* colorNameGenerator() {
-  let time = -1;
-  while (1) {
-    time += 1;
-    if (time > 30) { time = 0; }
-    let color;
-    const index = time % 3;
-    const value = 240 - Math.trunc(time / 6) * 32;
-    if (Math.trunc(time / 3) % 2 === 0) {
-      color = [0, 0, 0];
-      color.splice(index, 1, value);
-    } else {
-      color = [value, value, value];
-      color.splice(index, 1, 0);
-    }
-    const color16 = color.map(item => (item).toString(16).padEnd(2, item));
-    const name = `#${color16.join('')}`;
-    yield name;
-  }
-}
-const colorNameStore = colorNameGenerator();
-// 获取一个颜色值
-const takeColorName = () => colorNameStore.next().value;
+import { getRandomArray, takeColorName } from '../helper';
 
 const param = {
   name: 'shellSort',
@@ -153,14 +129,14 @@ const param = {
       // 排序后
       return promise;
     },
-    insertionStage(array) {
+    insertionStage(items) {
       // 将包含li的数组在下方舞台插入排序并替换回数组
-      if (!(array instanceof Array)) { return false; }
-      if (array.some(item => !(item instanceof Component))) { return false; }
+      if (!(items instanceof Array)) { return false; }
+      if (items.some(item => !(item instanceof Component))) { return false; }
       const stage = [];
-      const orders = array.map(item => item.data.order); // 因为第二次order未排序
+      const orders = items.map(item => item.data.order); // 因为第二次order未排序
       let promise = Promise.resolve();
-      array.forEach((item) => {
+      items.forEach((item) => {
         promise = promise
           .then(() => {
             // 找到应该插入舞台位置
@@ -192,9 +168,9 @@ const param = {
       // 替换回原数组
       promise = promise
         .then(() => {
-          array.splice(0, array.length, ...stage);
+          items.splice(0, items.length, ...stage);
           let goback = Promise.resolve();
-          array.forEach((item, i) => {
+          items.forEach((item, i) => {
             goback = goback
               .then(() => {
                 item.methods.unfall();

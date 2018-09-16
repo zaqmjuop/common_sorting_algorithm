@@ -12,4 +12,28 @@ const getRandomArray = (length = 20, min = 0, max = 100) => {
   return container;
 };
 
-export { getRandomArray };
+function* colorNameGenerator() {
+  let time = -1;
+  while (1) {
+    time += 1;
+    if (time > 30) { time = 0; }
+    let color;
+    const index = time % 3;
+    const value = 240 - Math.trunc(time / 6) * 32;
+    if (Math.trunc(time / 3) % 2 === 0) {
+      color = [0, 0, 0];
+      color.splice(index, 1, value);
+    } else {
+      color = [value, value, value];
+      color.splice(index, 1, 0);
+    }
+    const color16 = color.map(item => (item).toString(16).padEnd(2, item));
+    const name = `#${color16.join('')}`;
+    yield name;
+  }
+}
+const colorNameStore = colorNameGenerator();
+// 获取一个颜色值
+const takeColorName = () => colorNameStore.next().value;
+
+export { getRandomArray, takeColorName };

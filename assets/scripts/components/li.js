@@ -68,6 +68,8 @@ const param = {
           }
         } else if (typeof event.detail.backColor === 'string') {
           Dom.of(this.template).css('background-color', event.detail.backColor);
+        } else if (typeof event.detail.border === 'string') {
+          Dom.of(this.template).css('border', event.detail.border);
         }
       });
       /** 接受消息改变位置 */
