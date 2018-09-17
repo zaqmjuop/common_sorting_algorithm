@@ -72,11 +72,7 @@ const param = {
     bindEvents() {
       // 随机召唤数组
       Dom.of(this.elements.getRandom).on('click', () => {
-        if (this.data.isRunning) {
-          return console.warn('正在运行中,你可以刷新页面重新开始');
-        }
         this.methods.getRandom();
-        return this.methods.sendArray();
       });
       Dom.of(this.elements.sort).on('click', () => {
         if (this.data.isRunning) {

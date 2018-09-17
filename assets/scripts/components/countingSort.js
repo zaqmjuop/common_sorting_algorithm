@@ -2,6 +2,7 @@ import li from './li';
 import Dom from '../dom';
 import utils from '../utils';
 import Component from './component';
+import { getRandomArray } from '../helper';
 
 const countingSort = (array) => {
   if (!(array instanceof Array)) { return false; }
@@ -54,13 +55,16 @@ const param = {
     max: '*[name=max]',
     min: '*[name=min]',
     counting: '.counting',
+    speed: '*[name=speed]',
   },
   methods: {
     init() {
+      // 20个<li>
       let promise = Promise.resolve();
       for (let index = 0; index < 20; index += 1) {
         const liParam = Object.assign({ present: { order: index + 1 } }, li);
-        promise = promise.then(() => this.appendChild(liParam, this.elements.ul, -1))
+        promise = promise
+          .then(() => this.appendChild(liParam, this.elements.ul, -1))
           .then(item => this.data.items.push(item));
       }
       // 添加背景li
@@ -81,23 +85,16 @@ const param = {
       return promise;
     },
     /** 获取20个随机数 */
-    getRandom(number = 20) {
-      if (!Number.isSafeInteger(number)) { throw new TypeError(`参数number不能是${number}`); }
-      const ary = new Array(number);
-      for (let index = 0; index < ary.length; index += 1) {
-        ary[index] = Math.trunc(10 * Math.random()) + 1;
-      }
-      this.data.array = ary;
-      this.data.bubbleSortedTimes = 0;
-      this.data.isBubbleSortDone = 0;
-      this.data.isFinished = false;
-    },
-    /** 按照20个随机数改变子组件li高度 */
-    sendArray() {
+    getRandom() {
+      if (this.data.isRunning) { return false; }
+      this.data.array = getRandomArray(20, 0, 10);
+      // 改变Li高度
       this.data.items.forEach((item, index) => {
         item.dispatchEvent('send', { value: this.data.array[index] });
       });
+      return this.data.array;
     },
+    /** 修改最大最小值 */
     changeEndpoint(value) {
       if (!Number.isSafeInteger(value)) { return false; }
       let result;
@@ -112,6 +109,7 @@ const param = {
       }
       return result;
     },
+    // 计数
     fillContainers() {
       const lis = Dom.of(this.elements.counting).children('li');
       this.data.containers.forEach((team, index) => {
@@ -126,31 +124,38 @@ const param = {
     bindEvents() {
       // 随机召唤数组
       Dom.of(this.elements.getRandom).on('click', () => {
+        this.methods.getRandom();
+      });
+      Dom.of(this.elements.sort).on('click', () => {
         if (this.data.isRunning) {
           return console.warn('正在运行中,你可以刷新页面重新开始');
         }
-        this.methods.getRandom();
-        return this.methods.sendArray();
-      });
-      Dom.of(this.elements.sort).on('click', () => {
-        let promise = new Promise((resolve) => {
-          const firstValue = this.data.items[0].data.value;
-          this.data.max = firstValue;
-          this.data.min = firstValue;
-          Dom.of(this.elements.max).text(this.data.max);
-          Dom.of(this.elements.min).text(this.data.min);
-          resolve();
-        });
+        if (this.data.isSorted || this.data.array.every(item => !item || item <= 0)) {
+          this.methods.getRandom();
+        }
+        // 排序之前
+        this.data.isRunning = true;
+        this.data.speed = 1000 - Number(this.elements.speed.value) * 100;
+        this.data.isSorted = false;
+        const firstValue = this.data.items[0].data.value;
+        this.data.max = firstValue;
+        this.data.min = firstValue;
+        Dom.of(this.elements.max).text(this.data.max);
+        Dom.of(this.elements.min).text(this.data.min);
+
+        // 排序
+        let promise = Promise.resolve();
+        // 找到最大最小值
         this.data.items.forEach((item) => {
           promise = promise
             .then(() => {
               const isEndpoint = this.methods.changeEndpoint(item.data.value);
               if (isEndpoint) {
-                item.dispatchEvent('send', { method: 'highLight', time: 111, backColor: 'yellow' });
+                item.dispatchEvent('send', { method: 'highLight', time: this.data.speed, backColor: 'yellow' });
               } else {
-                item.dispatchEvent('send', { method: 'highLight', time: 111 });
+                item.dispatchEvent('send', { method: 'highLight', time: this.data.speed });
               }
-              return utils.wait(111);
+              return utils.wait(this.data.speed);
             });
         });
         promise = promise
@@ -158,71 +163,64 @@ const param = {
             // 设置容器
             this.data.containers = [];
             for (let value = this.data.min; value <= this.data.max; value += 1) {
-              console.log(value, value + this.data.min, this.data.max)
               this.data.containers.push([]);
               const liItem = this.data.bgItems[value - this.data.min];
               liItem.dispatchEvent('send', { value });
               this.appendChild(liItem, this.elements.bottomList, -1);
             }
             this.methods.fillContainers();
-            console.log(this.data.containers)
-            return utils.wait(111);
+            return utils.wait(this.data.speed);
           }).then(() => {
             // 收容到容器
             let takein = Promise.resolve();
             this.data.items.forEach((item) => {
-              takein = takein.then(() => {
-                const order = item.data.value - this.data.min + 1;
-                this.data.containers[order - 1].push(item);
-                item.dispatchEvent('send', { order });
-                item.methods.fall(-150);
-                this.methods.fillContainers();
-                return utils.wait(111);
-              });
+              takein = takein
+                .then(() => {
+                  const order = item.data.value - this.data.min + 1;
+                  this.data.containers[order - 1].push(item);
+                  item.dispatchEvent('send', { order });
+                  item.methods.fall(-150);
+                  this.methods.fillContainers();
+                  return utils.wait(this.data.speed);
+                });
             });
             return takein;
           }).then(() => {
             // 取出
+            this.data.items = [];
             let takeout = Promise.resolve();
             let order = 1;
             this.data.containers.forEach((team) => {
-              team.forEach((item, index) => {
-                takeout = takeout.then(() => {
-                  item.dispatchEvent('send', { order });
-                  order += 1;
-                  item.methods.unfall();
-                  team.pop();
-                  this.methods.fillContainers();
-                  console.log(team, index)
-                  return utils.wait(111);
-                });
+              team.forEach((item) => {
+                takeout = takeout
+                  .then(() => {
+                    this.data.items.push(item);
+                    item.dispatchEvent('send', { order });
+                    order += 1;
+                    item.methods.unfall();
+                    this.methods.fillContainers();
+                    return utils.wait(this.data.speed);
+                  });
               });
             });
             return takeout;
-          }).then(() => {
-            // 整理
-            this.data.items.sort((a, b) => (a.data.order - b.data.order));
-            this.methods.getArray();
-            Dom.of(this.elements.bottomList).html('');
+          });
+        // 排序后
+        promise = promise
+          .then(() => {
             const countings = Dom.of(this.elements.counting).children('li');
             countings.forEach((item) => {
               Dom.of(item).text('');
             });
+            Dom.of(this.elements.bottomList).html('');
             Dom.of(this.elements.max).text('');
             Dom.of(this.elements.min).text('');
-            console.log(this.data)
+            this.data.array = this.data.items.map(item => item.data.value);
+            this.data.isRunning = false;
+            this.data.isSorted = true;
           });
-
-
-        console.log('点击了排序');
-        countingSort(this.data.array);
-        console.log(this.data.array);
+        return promise;
       });
-    },
-    getArray() {
-      const array = this.data.items.map(item => item.data.value);
-      this.data.array = array;
-      return array;
     },
   },
   created() {
