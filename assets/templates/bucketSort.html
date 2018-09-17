@@ -26,8 +26,8 @@
     .minmax {
       position: absolute;
       margin: 0;
-      bottom: 100px;
-      left: 600px;
+      right: 20px;
+      top: 20px;
     }
   </style>
 </head>
@@ -37,6 +37,10 @@
     <div class="btns">
       <button name="get-random">get-random</button>
       <button name="sort">桶排序</button>
+      <span>
+        速度
+      </span>
+      <input type="range" name="speed" min="2" max="8" value="5" step="1" />
     </div>
     <div class="board">
       <p class="minmax">
