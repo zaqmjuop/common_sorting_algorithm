@@ -1,42 +1,7 @@
 
 import Dom from '../dom';
 import utils from '../utils';
-import * as sort from '../sort/index';
-
-const radixSort = (array) => {
-  if (!(array instanceof Array)) { return false; }
-  // 设置一个长度为10的容器，每个成员是一个空数组
-  const container = [];
-  const initContainer = () => {
-    container.splice(0, 10, ...[[], [], [], [], [], [], [], [], [], []]);
-  };
-  initContainer();
-  // 找到最大值
-  let max = array[0];
-  array.forEach((item) => {
-    if (item > max) { max = item; }
-  });
-  // 计算出位数
-  let decimal = 0;
-  while (max > 0) {
-    decimal += 1;
-    max = Math.trunc(max / 10);
-  }
-  decimal = (decimal >= 1) ? decimal : 1;
-  // 最大值是2位数就排2次，3位数就排3次
-  for (let time = 0; time < decimal; time += 1) {
-    // 算出对应位数的数字，并按分组放进容器
-    array.forEach((item) => {
-      const index = Math.trunc(item / (10 ** time)) % 10;
-      container[index].push(item);
-    });
-    // 替换原数组并清空容器
-    array.splice(0, array.length);
-    container.forEach(team => array.push(...team));
-    initContainer();
-  }
-  return array;
-};
+import { getRandomArray } from '../helper';
 
 const param = {
   name: 'radixSort',
@@ -57,7 +22,7 @@ const param = {
     canvas: 'canvas',
     getRandom: '*[name=get-random]',
     sort: '*[name=sort]',
-    test: '*[name=test]',
+    speed: '*[name=speed]',
   },
   methods: {
     init() {
@@ -85,8 +50,6 @@ const param = {
         return item;
       });
       this.methods.run();
-      let promise = Promise.resolve();
-      return promise;
     },
     fillDefault() {
       // 画items
@@ -96,24 +59,22 @@ const param = {
       this.data.items.forEach((item) => {
         this.data.ctx.strokeRect(item.left, item.top, item.width, item.height);
         const center = { x: item.left + item.width / 2, y: item.top + item.height / 2 };
+        const str = String(item.value).padStart(this.data.maxDigit, '0');
         if (item.highLightDigit >= 0) {
-          const fontWidth = Math.ceil(this.data.ctx.measureText(`${item.value}`).width);
-          const grd = this.data.ctx.createLinearGradient(center.x - fontWidth / 2, 0, center.x + fontWidth / 2, 0);
-          if (item.highLightDigit === 0) {
-            grd.addColorStop(0, '#000');
-            grd.addColorStop(0.5, '#000');
-            grd.addColorStop(0.5, '#f00');
-            grd.addColorStop(1, '#f00');
-          } else if (item.highLightDigit === 1) {
-            grd.addColorStop(0, '#f00');
-            grd.addColorStop(0.5, '#f00');
-            grd.addColorStop(0.5, '#000');
-            grd.addColorStop(1, '#000');
-          }
-          this.data.ctx.fillStyle = grd;
+          const fontWidth = Math.ceil(this.data.ctx.measureText(str).width);
+          const gradientStart = center.x - fontWidth / 2;
+          const gradientEnd = center.x + fontWidth / 2;
+          const gradient = this.data.ctx.createLinearGradient(gradientStart, 0, gradientEnd, 0);
+          gradient.addColorStop(0, '#000');
+          gradient.addColorStop((this.data.maxDigit - this.data.digit - 1) / this.data.maxDigit, '#000');
+          gradient.addColorStop((this.data.maxDigit - this.data.digit - 1) / this.data.maxDigit, '#f00');
+          gradient.addColorStop((this.data.maxDigit - this.data.digit) / this.data.maxDigit, '#f00');
+          gradient.addColorStop((this.data.maxDigit - this.data.digit) / this.data.maxDigit, '#000');
+
+          gradient.addColorStop(1, '#000');
+          this.data.ctx.fillStyle = gradient;
         }
-        const text = (item.value < 10) ? `0${item.value}` : `${item.value}`;
-        this.data.ctx.fillText(text, item.left + item.width / 2, item.top + item.height / 2);
+        this.data.ctx.fillText(str, item.left + item.width / 2, item.top + item.height / 2);
         this.data.ctx.fillStyle = '#000';
       });
       // 画容器
@@ -161,23 +122,39 @@ const param = {
       return clearInterval(this.data.interval);
     },
     radixSort() {
-      let promise = Promise.resolve();
+      // 排序前
+      let max = this.data.items[0].value;
+      let min = this.data.items[0].value;
+      this.data.items.forEach((item) => {
+        if (item.value > max) { max = item.value; }
+        if (item.value < min) { min = item.value; }
+      });
+      this.data.maxDigit = Math.trunc(Math.log10(max)) + 1;
       this.data.digit = 0;
-      for (let index = 0; index < 2; index += 1) {
+      // 排序
+      let promise = Promise.resolve();
+      for (let index = 0; index < this.data.maxDigit; index += 1) {
         promise = promise
           .then(() => this.methods.radixSortOnce())
           .then(() => {
             this.data.digit += 1;
-            return utils.wait(222);
+            return utils.wait(this.data.speed);
           });
       }
+      // 排序后
+      promise = promise
+        .then(() => {
+          this.data.maxDigit = 1;
+          this.data.array = this.data.items.map(item => item.value);
+        });
       return promise;
     },
     radixSortOnce() {
-      // 找到分组->下放->todo 返回 todo
+      const digitIndex = this.data.maxDigit - 1 - this.data.digit;
+      // 找到分组->下放->返回
       this.data.items.forEach((item) => {
-        const text = (item.value < 10) ? `0${item.value}` : `${item.value}`;
-        item.teamIndex = Number(text[text.length - 1 - this.data.digit]);
+        const str = String(item.value).padStart(this.data.maxDigit, '0');
+        item.teamIndex = Number(str[digitIndex]);
         item.highLightDigit = this.data.digit;
       });
       // 下放
@@ -186,11 +163,13 @@ const param = {
         promise = promise.then(() => {
           const team = this.data.containers[item.teamIndex];
           team.push(item);
-          const positon = {
-            left: this.data.container.margin.left + this.data.container.spacingX * (item.teamIndex + 0.25),
-            top: this.data.height - this.data.container.bottom - team.length * (item.height + item.margin.bottom),
-          };
-          return this.methods.itemMoveTo(item, positon.left, positon.top);
+          const left = this.data.container.margin.left
+            + this.data.container.spacingX * (item.teamIndex + 0.25);
+          const top = this.data.height
+            - this.data.container.bottom
+            - team.length * (item.height + item.margin.bottom);
+          const positon = { left, top };
+          return this.methods.itemMoveTo(item, positon.left, positon.top, this.data.speed);
         });
       });
       // 返回
@@ -207,7 +186,7 @@ const param = {
                 left = 0;
                 top += (item.height + item.margin.bottom);
               }
-              return this.methods.itemMoveTo(item, positon.left, positon.top);
+              return this.methods.itemMoveTo(item, positon.left, positon.top, this.data.speed);
             });
           });
         });
@@ -250,33 +229,12 @@ const param = {
       return promise;
     },
     /** 获取20个随机数 */
-    getRandom(number = 20) {
-      if (!Number.isSafeInteger(number)) { throw new TypeError(`参数number不能是${number}`); }
-      const ary = new Array(number);
-      for (let index = 0; index < ary.length; index += 1) {
-        ary[index] = Math.trunc(3 * Math.random());
-      }
-      this.data.array = ary;
-      this.data.bubbleSortedTimes = 0;
-      this.data.isBubbleSortDone = 0;
-      this.data.isFinished = false;
+    getRandom() {
+      if (this.data.isRunning) { return false; }
+      this.data.array = getRandomArray(20, 0, 99);
+      return this.data.array;
     },
     bindEvents() {
-      // 测试方法
-      Dom.of(this.elements.test).on('click', () => {
-        const container = this.data.array.slice(0, 10).map((value, index) => {
-          const ary = new Array(this.data.array.length - 10 - index);
-          ary.fill(value);
-          const item = ary.join('');
-          return item;
-        });
-        // sort.sort(container, (item) => {
-        //   return item.value;
-        // });
-        sort.sort(container)
-        console.log(container)
-        // console.log(container)
-      });
       // 随机召唤数组
       Dom.of(this.elements.getRandom).on('click', () => {
         if (this.data.isRunning) {
@@ -286,21 +244,38 @@ const param = {
         this.data.items.forEach((item, index) => {
           item.value = this.data.array[index];
         });
+        return this.data.array;
       });
       Dom.of(this.elements.sort).on('click', () => {
-        radixSort(this.data.array);
-        this.methods.radixSort();
+        if (this.data.isRunning) {
+          return console.warn('正在运行中,你可以刷新页面重新开始');
+        }
+        if (this.data.isSorted || this.data.array.every(item => !item || item <= 0)) {
+          this.methods.getRandom();
+        }
+        // 排序前
+        this.data.isRunning = true;
+        this.data.speed = 1000 - Number(this.elements.speed.value) * 100;
+        this.data.bubbleSortedTimes = 0;
+        this.data.isBubbleSortDone = false;
+        this.data.exchangeTimes = 0;
+        this.data.isSorted = false;
+        // 排序
+        let promise = this.methods.radixSort();
+        // 排序后
+        promise = promise.then(() => {
+          this.data.isRunning = false;
+          this.data.isSorted = true;          
+        });
+        return promise;
       });
-    },
-    getArray() {
-      const array = this.data.items.map(item => item.data.value);
-      this.data.array = array;
-      return array;
     },
   },
   created() {
-    return this.methods.init()
+    const promise = Promise.resolve()
+      .then(() => this.methods.init())
       .then(() => this.methods.bindEvents());
+    return promise;
   },
 };
 
