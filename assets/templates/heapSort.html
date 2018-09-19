@@ -3,8 +3,20 @@
 
 <head>
   <style scoped>
+    .btns {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 1em;
+    }
+
+    .btns>* {
+      margin-right: 5px;
+    }
+
     canvas {
-      border: 1px solid #f00;
+      border: 2px solid #f00;
+      margin: 0 auto;
+      display: block;
     }
   </style>
 </head>
@@ -19,9 +31,7 @@
       </span>
       <input type="range" name="speed" min="2" max="8" value="5" step="1" />
     </div>
-    <div>
-      <canvas width="1000" height="400"></canvas>
-    </div>
+    <canvas width="1000" height="400"></canvas>
   </section>
 </body>
 

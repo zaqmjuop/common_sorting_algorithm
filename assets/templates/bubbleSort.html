@@ -5,16 +5,18 @@
   <style scoped>
     .btns {
       display: flex;
-      align-items: center;
+      justify-content: center;
+      margin-bottom: 1em;
     }
-    .btns>*{
+
+    .btns>* {
       margin-right: 5px;
     }
 
     .board {
       width: 800px;
       border: 2px solid red;
-      text-align: center;
+      margin: 0 auto;
     }
 
     ul.list {
@@ -40,7 +42,7 @@
       <span>
         速度
       </span>
-      <input type="range" name="speed" min="2" max="8" value="5" step="1"/>
+      <input type="range" name="speed" min="2" max="8" value="5" step="1" />
     </div>
     <div class="board">
       <ul class="list">
