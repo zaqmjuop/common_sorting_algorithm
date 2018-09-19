@@ -1,4 +1,4 @@
-const quickSortOnce = (array, callback, startIndex = 0, endIndex = array.length - 1) => {
+const quickSortOnce = (array, startIndex = 0, endIndex = array.length - 1) => {
   const pivot = array[startIndex]; // array[leftIndex]; // 取左端点值为参照物
   let rightIndex = endIndex; // 设置右端点
   let leftIndex = startIndex; // 设置左端点
@@ -6,7 +6,7 @@ const quickSortOnce = (array, callback, startIndex = 0, endIndex = array.length 
   while (leftIndex < rightIndex) {
     // 从右端点开始收紧
     for (; leftIndex < rightIndex; rightIndex -= 1) {
-      if (callback(array[rightIndex]) < callback(pivot)) {
+      if (array[rightIndex] < pivot) {
         array.splice(leftIndex, 1, array[rightIndex]);
         leftIndex += 1;
         break;
@@ -14,7 +14,7 @@ const quickSortOnce = (array, callback, startIndex = 0, endIndex = array.length 
     }
     // 如果已经从右侧找到比参照物小的值而使左右端点未重合，那么开始从左端点开始找比参照物大的值
     for (; leftIndex < rightIndex; leftIndex += 1) {
-      if (callback(array[leftIndex]) > callback(pivot)) {
+      if (array[leftIndex] > pivot) {
         array.splice(rightIndex, 1, array[leftIndex]);
         rightIndex -= 1;
         break;
@@ -25,22 +25,26 @@ const quickSortOnce = (array, callback, startIndex = 0, endIndex = array.length 
   return leftIndex;
 };
 
-const recursion = (array, callback, startIndex = 0, endIndex = array.length - 1) => {
-  const pivotIndex = quickSortOnce(array, callback, startIndex, endIndex);
+const recursion = (array, startIndex = 0, endIndex = array.length - 1) => {
+  const pivotIndex = quickSortOnce(array, startIndex, endIndex);
   if (pivotIndex - 1 > 0) {
-    recursion(array, callback, 0, pivotIndex - 1); // 递归左端点的左侧部分
+    recursion(array, 0, pivotIndex - 1); // 递归左端点的左侧部分
   }
   if (endIndex > pivotIndex + 1) {
-    recursion(array, callback, pivotIndex + 1, endIndex); // 递归左端点的右侧部分
+    recursion(array, pivotIndex + 1, endIndex); // 递归左端点的右侧部分
   }
   return array;
 };
 
-const quickSort = (array, callback = item => item) => {
-  const isValidArgs = array instanceof Array
-    && typeof callback === 'function';
-  if (!isValidArgs) { return false; }
-  recursion(array, callback, 0, array.length - 1);
+/**
+ * 快速排序
+ * @param {Array} array - 数组
+ * @param {Function} callback - callback(item, index)必须返回一个有限数字，升序排序，可以返回负数来降序
+ */
+const quickSort = (array) => {
+  if (!(array instanceof Array)) { return false; }
+  if (array.length < 2) { return array; }
+  recursion(array, 0, array.length - 1);
   return array;
 };
 

@@ -10,7 +10,7 @@ const shellSortOnce = (array, increment) => {
       effectIndexes.push(effectIndex);
       effectIndex += increment;
     }
-    const effectTeam = effectIndexes.map(index => array[index]);    
+    const effectTeam = effectIndexes.map(index => array[index]);
     // 排序
     insertionSort(effectTeam);
     // 替换
