@@ -36,8 +36,10 @@ const param = {
     },
     /** 获取20个随机数 */
     getRandom() {
-      if (this.data.isRunning) { return false; }
-      this.data.array = getRandomArray();
+      if (this.data.isRunning) {
+        return console.warn('正在运行中,你可以刷新页面重新开始');
+      }
+      this.data.array = getRandomArray(20, 1, 99);
       // 改变Li高度
       this.data.items.forEach((item, index) => {
         item.dispatchEvent('send', { value: this.data.array[index] });
@@ -185,8 +187,10 @@ const param = {
     },
   },
   created() {
-    return this.methods.init()
+    const promise = Promise.resolve()
+      .then(() => this.methods.init())
       .then(() => this.methods.bindEvents());
+    return promise;
   },
 };
 

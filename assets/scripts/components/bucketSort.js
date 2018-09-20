@@ -35,7 +35,10 @@ const param = {
     },
     /** 获取20个随机数 */
     getRandom() {
-      if (this.data.isRunning) { return false; }
+      if (this.data.isRunning) {
+        return console.warn('正在运行中,你可以刷新页面重新开始');
+      }
+      this.data.isSorted = false;
       this.data.array = getRandomArray(20, 1, 50);
       // 改变Li高度
       this.data.items.forEach((item, index) => {
@@ -73,7 +76,6 @@ const param = {
         const DEFAULT_BUCKET_SIZE = 3;
         this.data.isRunning = true;
         this.data.speed = 1000 - Number(this.elements.speed.value) * 100;
-        this.data.isSorted = false;
         this.data.max = this.data.items[0].data.value;
         this.data.min = this.data.items[0].data.value;
         Dom.of(this.elements.max).text(this.data.max);
@@ -120,23 +122,24 @@ const param = {
             });
         });
         // 替换回原位
-        promise = promise.then(() => {
-          this.data.items = [];
-          let order = 1;
-          let goback = Promise.resolve();
-          this.data.containers.forEach((container) => {
-            container.forEach((item) => {
-              goback = goback.then(() => {
-                this.data.items.push(item);
-                item.dispatchEvent('send', { order });
-                order += 1;
-                item.methods.unfall();
-                return utils.wait(this.data.speed);
+        promise = promise
+          .then(() => {
+            this.data.items = [];
+            let order = 1;
+            let goback = Promise.resolve();
+            this.data.containers.forEach((container) => {
+              container.forEach((item) => {
+                goback = goback.then(() => {
+                  this.data.items.push(item);
+                  item.dispatchEvent('send', { order });
+                  order += 1;
+                  item.methods.unfall();
+                  return utils.wait(this.data.speed);
+                });
               });
             });
+            return goback;
           });
-          return goback;
-        });
         // 排序后
         promise = promise
           .then(() => {
@@ -199,8 +202,10 @@ const param = {
     },
   },
   created() {
-    return this.methods.init()
+    const promise = Promise.resolve()
+      .then(() => this.methods.init())
       .then(() => this.methods.bindEvents());
+    return promise;
   },
 };
 

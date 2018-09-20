@@ -230,21 +230,20 @@ const param = {
     },
     /** 获取20个随机数 */
     getRandom() {
-      if (this.data.isRunning) { return false; }
+      if (this.data.isRunning) {
+        return console.warn('正在运行中,你可以刷新页面重新开始');
+      }
+      this.data.isSorted = false;
       this.data.array = getRandomArray(20, 0, 99);
+      this.data.items.forEach((item, index) => {
+        item.value = this.data.array[index];
+      });
       return this.data.array;
     },
     bindEvents() {
       // 随机召唤数组
       Dom.of(this.elements.getRandom).on('click', () => {
-        if (this.data.isRunning) {
-          return console.warn('正在运行中,你可以刷新页面重新开始');
-        }
         this.methods.getRandom();
-        this.data.items.forEach((item, index) => {
-          item.value = this.data.array[index];
-        });
-        return this.data.array;
       });
       Dom.of(this.elements.sort).on('click', () => {
         if (this.data.isRunning) {
@@ -259,13 +258,12 @@ const param = {
         this.data.bubbleSortedTimes = 0;
         this.data.isBubbleSortDone = false;
         this.data.exchangeTimes = 0;
-        this.data.isSorted = false;
         // 排序
         let promise = this.methods.radixSort();
         // 排序后
         promise = promise.then(() => {
           this.data.isRunning = false;
-          this.data.isSorted = true;          
+          this.data.isSorted = true;
         });
         return promise;
       });

@@ -37,8 +37,11 @@ const param = {
     },
     /** 获取20个随机数 */
     getRandom() {
-      if (this.data.isRunning) { return false; }
-      this.data.array = getRandomArray();
+      if (this.data.isRunning) {
+        return console.warn('正在运行中,你可以刷新页面重新开始');
+      }
+      this.data.isSorted = false;
+      this.data.array = getRandomArray(20, 1, 99);
       // 改变Li高度
       this.data.items.forEach((item, index) => {
         item.dispatchEvent('send', { value: this.data.array[index] });
@@ -48,7 +51,7 @@ const param = {
     bindEvents() {
       // 随机召唤数组
       Dom.of(this.elements.getRandom).on('click', () => {
-        return this.methods.getRandom();
+        this.methods.getRandom();
       });
       Dom.of(this.elements.sort).on('click', () => {
         if (this.data.isRunning) {
@@ -91,6 +94,7 @@ const param = {
             this.data.sortTimes = 0;
             console.log('done');
           });
+        return promise;
       });
     },
     sortOnce() {
@@ -170,8 +174,10 @@ const param = {
     },
   },
   created() {
-    return this.methods.init()
+    const promise = Promise.resolve()
+      .then(() => this.methods.init())
       .then(() => this.methods.bindEvents());
+    return promise;
   },
 };
 

@@ -1,3 +1,6 @@
+import Component from './components/component';
+import li from './components/li';
+
 /** 获取指定长度的由随机数组成的数组 */
 const getRandomArray = (length = 20, min = 0, max = 100) => {
   if (!Number.isSafeInteger(length)) { throw new TypeError(`参数length不能是${length}`); }
@@ -36,4 +39,7 @@ const colorNameStore = colorNameGenerator();
 // 获取一个颜色值
 const takeColorName = () => colorNameStore.next().value;
 
-export { getRandomArray, takeColorName };
+export {
+  getRandomArray,
+  takeColorName,
+};

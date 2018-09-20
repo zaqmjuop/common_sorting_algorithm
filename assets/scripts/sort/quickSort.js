@@ -1,3 +1,4 @@
+
 const quickSortOnce = (array, startIndex = 0, endIndex = array.length - 1) => {
   const pivot = array[startIndex]; // array[leftIndex]; // 取左端点值为参照物
   let rightIndex = endIndex; // 设置右端点
@@ -26,13 +27,10 @@ const quickSortOnce = (array, startIndex = 0, endIndex = array.length - 1) => {
 };
 
 const recursion = (array, startIndex = 0, endIndex = array.length - 1) => {
+  if (startIndex >= endIndex) { return false; }
   const pivotIndex = quickSortOnce(array, startIndex, endIndex);
-  if (pivotIndex - 1 > 0) {
-    recursion(array, 0, pivotIndex - 1); // 递归左端点的左侧部分
-  }
-  if (endIndex > pivotIndex + 1) {
-    recursion(array, pivotIndex + 1, endIndex); // 递归左端点的右侧部分
-  }
+  recursion(array, startIndex, pivotIndex - 1); // 递归左端点的左侧部分
+  recursion(array, pivotIndex + 1, endIndex); // 递归左端点的右侧部分
   return array;
 };
 

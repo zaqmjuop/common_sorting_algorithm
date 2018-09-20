@@ -34,11 +34,15 @@ const param = {
     },
     /** 获取20个随机数 */
     getRandom() {
-      if (this.data.isRunning) { return false; }
-      this.data.array = getRandomArray();
+      if (this.data.isRunning) {
+        return console.warn('正在运行中,你可以刷新页面重新开始');
+      }
+      this.data.isSorted = false;
+      this.data.array = getRandomArray(20, 1, 99);
       // 改变Li高度
       this.data.items.forEach((item, index) => {
         item.dispatchEvent('send', { value: this.data.array[index] });
+        item.dispatchEvent('send', { backColor: '' });
       });
       return this.data.array;
     },
@@ -80,15 +84,11 @@ const param = {
         }
         if (this.data.isSorted || this.data.array.every(item => !item || item <= 0)) {
           this.methods.getRandom();
-          this.data.items.forEach((item) => {
-            item.dispatchEvent('send', { backColor: '' });
-          });
         }
         // 排序前
         this.data.isRunning = true;
         this.data.speed = 1000 - Number(this.elements.speed.value) * 100;
         this.data.exchangeTimes = 0;
-        this.data.isSorted = false;
         this.data.startIndex = 0;
         this.data.endIndex = this.data.items.length - 1;
         console.log('点击了排序');
@@ -102,6 +102,9 @@ const param = {
             this.data.isRunning = false;
             this.data.isSorted = true;
             this.data.array = this.data.items.map(item => item.data.value);
+            this.data.items.forEach((item) => {
+              item.dispatchEvent('send', { backColor: '' });
+            });
             console.log(`done。 交换次数${this.data.exchangeTimes}`, this.data.array);
           });
         return promise;
@@ -231,8 +234,10 @@ const param = {
     },
   },
   created() {
-    return this.methods.init()
+    const promise = Promise.resolve()
+      .then(() => this.methods.init())
       .then(() => this.methods.bindEvents());
+    return promise;
   },
 };
 

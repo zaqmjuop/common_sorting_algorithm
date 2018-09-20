@@ -14,7 +14,6 @@ const param = {
       sortTimes: 0,
       speed: 500,
       isRunning: false,
-      isSorted: false,
       exchangeTimes: 0,
     };
   },
@@ -38,8 +37,11 @@ const param = {
     },
     /** 获取20个随机数 */
     getRandom() {
-      if (this.data.isRunning) { return false; }
-      this.data.array = getRandomArray();
+      if (this.data.isRunning) {
+        return console.warn('正在运行中,你可以刷新页面重新开始');
+      }
+      this.data.isSorted = false;
+      this.data.array = getRandomArray(20, 1, 99);
       // 改变Li高度
       this.data.items.forEach((item, index) => {
         item.dispatchEvent('send', { value: this.data.array[index] });
@@ -120,11 +122,7 @@ const param = {
     bindEvents() {
       // 随机召唤数组
       Dom.of(this.elements.getRandom).on('click', () => {
-        if (this.data.isRunning) {
-          return console.warn('正在运行中,你可以刷新页面重新开始');
-        }
         this.methods.getRandom();
-        return 1;
       });
       // 选择排序
       Dom.of(this.elements.sort).on('click', () => {
@@ -153,15 +151,20 @@ const param = {
           .then(() => {
             this.data.isRunning = false;
             this.data.isSorted = true;
-            console.log(`done。 交换次数${this.data.exchangeTimes}`);
+            this.data.items.forEach((item) => {
+              item.dispatchEvent('send', { backColor: '' });
+            });
+            console.log(`done 交换次数${this.data.exchangeTimes}`);
           });
         return promise;
       });
     },
   },
   created() {
-    return this.methods.init()
+    const promise = Promise.resolve()
+      .then(() => this.methods.init())
       .then(() => this.methods.bindEvents());
+    return promise;
   },
 };
 

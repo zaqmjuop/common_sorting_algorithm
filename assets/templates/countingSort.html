@@ -17,6 +17,7 @@
       width: 800px;
       margin: 0 auto;
       border: 2px solid red;
+      position: relative;
     }
 
     ul.list {
@@ -32,9 +33,11 @@
       position: relative;
     }
 
-    p {
-      min-height: 2em;
+    .minmax {
+      position: absolute;
       margin: 0;
+      right: 20px;
+      top: 20px;
     }
 
     li {
@@ -59,15 +62,15 @@
 <body>
   <section>
     <div class="btns">
-      <button name="get-random">get-random</button>
-      <button name="sort">计数排序</button>
       <span>
         速度
       </span>
       <input type="range" name="speed" min="2" max="8" value="5" step="1" />
+      <button name="get-random">重新获取随机数</button>
+      <button name="sort">计数排序</button>
     </div>
     <div class="board">
-      <p>
+      <p class="minmax">
         最大值：
         <span name="max"></span>
         最小值：

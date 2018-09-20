@@ -47,13 +47,14 @@ const param = {
       // 画连接线
       this.data.items.forEach((item) => {
         const index = this.data.items.indexOf(item);
-        if (index <= 0) { return false; }
-        const fatherIndex = Math.trunc((index - 1) / 2);
-        const father = this.data.items[fatherIndex];
-        ctx.beginPath();
-        ctx.moveTo(item.left, item.top);
-        ctx.lineTo(father.left, father.top);
-        ctx.stroke();
+        if (index > 0) {
+          const fatherIndex = Math.trunc((index - 1) / 2);
+          const father = this.data.items[fatherIndex];
+          ctx.beginPath();
+          ctx.moveTo(item.left, item.top);
+          ctx.lineTo(father.left, father.top);
+          ctx.stroke();
+        }
       });
       // 画圆
       ctx.fillStyle = '#fff';
@@ -286,7 +287,9 @@ const param = {
     },
     /** 获取20个随机数 */
     getRandom() {
-      if (this.data.isRunning) { return false; }
+      if (this.data.isRunning) {
+        return console.warn('正在运行中,你可以刷新页面重新开始');
+      }
       this.data.array = getRandomArray(20, 0, 99);
       // 添加Items
       this.data.items = [];
@@ -313,11 +316,7 @@ const param = {
     bindEvents() {
       // 随机召唤数组
       Dom.of(this.elements.getRandom).on('click', () => {
-        if (this.data.isRunning) {
-          return console.warn('正在运行中,你可以刷新页面重新开始');
-        }
         this.methods.getRandom();
-        return this.data.array;
       });
       Dom.of(this.elements.sort).on('click', () => {
         if (this.data.isRunning) {
@@ -329,7 +328,6 @@ const param = {
         // 排序前
         this.data.isRunning = true;
         this.data.speed = 1000 - Number(this.elements.speed.value) * 100;
-        this.data.isSorted = false;
         // 排序
         let promise = Promise.resolve()
           .then(() => this.methods.heapSort());

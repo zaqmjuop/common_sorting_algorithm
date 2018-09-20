@@ -4,37 +4,6 @@ import utils from '../utils';
 import Component from './component';
 import { getRandomArray } from '../helper';
 
-const countingSort = (array) => {
-  if (!(array instanceof Array)) { return false; }
-  if (array.some(item => !Number.isSafeInteger(item))) { return false; }
-  // 确定范围
-  let max = array[0];
-  let min = array[0];
-  array.forEach((item) => {
-    if (item > max) { max = item; }
-    if (item < min) { min = item; }
-  });
-  // 设一个容器，容器的每个成员是一个数组，值相同的成员放到同一数组
-  const container = [];
-  for (let index = min; index <= max; index += 1) {
-    container.push([]);
-  }
-  array.forEach((item) => {
-    const index = item - min;
-    container[index].push(item);
-  });
-  // 清空原数组
-  array.splice(0, array.length);
-  // 把容器中每个数组中的成员重新放回原数组
-  container.forEach((team) => {
-    team.forEach((item) => {
-      array.push(item);
-    });
-  });
-  return array;
-};
-
-
 const param = {
   name: 'countingSort',
   query: 'countingSort',
@@ -86,7 +55,10 @@ const param = {
     },
     /** 获取20个随机数 */
     getRandom() {
-      if (this.data.isRunning) { return false; }
+      if (this.data.isRunning) {
+        return console.warn('正在运行中,你可以刷新页面重新开始');
+      }
+      this.data.isSorted = false;
       this.data.array = getRandomArray(20, 0, 10);
       // 改变Li高度
       this.data.items.forEach((item, index) => {
@@ -136,7 +108,6 @@ const param = {
         // 排序之前
         this.data.isRunning = true;
         this.data.speed = 1000 - Number(this.elements.speed.value) * 100;
-        this.data.isSorted = false;
         const firstValue = this.data.items[0].data.value;
         this.data.max = firstValue;
         this.data.min = firstValue;
@@ -224,8 +195,10 @@ const param = {
     },
   },
   created() {
-    return this.methods.init()
+    const promise = Promise.resolve()
+      .then(() => this.methods.init())
       .then(() => this.methods.bindEvents());
+    return promise;
   },
 };
 
