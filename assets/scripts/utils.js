@@ -134,7 +134,7 @@ const bubbleSort = (ary, callback) => {
 };
 
 /**
- * 返回一个等待若干好眠的promise
+ * 返回一个等待若干毫秒的promise
  * @param {number} mesc - 等待的毫秒数
  */
 const wait = (mesc) => {

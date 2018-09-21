@@ -145,6 +145,8 @@ const param = {
           .then(() => {
             this.data.isRunning = false;
             this.data.isSorted = true;
+            Dom.of(this.elements.max).text('');
+            Dom.of(this.elements.min).text('');
             this.data.array = this.data.items.map(item => item.data.value);
           });
         return promise;
