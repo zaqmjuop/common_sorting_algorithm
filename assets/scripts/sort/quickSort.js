@@ -37,7 +37,6 @@ const recursion = (array, startIndex = 0, endIndex = array.length - 1) => {
 /**
  * 快速排序
  * @param {Array} array - 数组
- * @param {Function} callback - callback(item, index)必须返回一个有限数字，升序排序，可以返回负数来降序
  */
 const quickSort = (array) => {
   if (!(array instanceof Array)) { return false; }
